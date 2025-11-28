@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventario - BDMES</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+    
+    <style>
+        :root { --primary-color: #004d99; --sidebar-width: 280px; }
+        body { background-color: #f8f9fa; }
+        .sidebar { width: var(--sidebar-width); height: 100vh; position: fixed; top: 0; left: 0; background-color: var(--primary-color); color: white; padding-top: 20px; z-index: 1000; }
+        .sidebar .nav-link { color: rgba(255,255,255,0.8); margin-bottom: 5px; padding: 10px 20px; border-radius: 0 25px 25px 0; }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active { color: var(--primary-color); background-color: white; font-weight: bold; }
+        .main-content { margin-left: var(--sidebar-width); padding: 30px; }
+        .table-responsive { border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+    <nav class="sidebar d-flex flex-column d-none d-md-flex">
+        <div class="px-4 mb-4"><h4>Admin BDMES</h4></div>
+        <ul class="nav flex-column pe-3">
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('admin_dashboard') }}"><i class="bi bi-speedometer2 me-2"></i> Resumen</a></li>
+            <li class="nav-item"><a class="nav-link active" href="{{ url_for('inventario') }}" style="background:white; color:var(--primary-color); font-weight:bold; border-radius:0 25px 25px 0;"><i class="bi bi-collection-fill me-2"></i> Inventario</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('nuevo_recurso') }}"><i class="bi bi-cloud-arrow-up-fill me-2"></i> Subir Archivos</a></li>
+        </ul>
+        <div class="mt-auto p-3"><a href="{{ url_for('logout') }}" class="btn btn-outline-light w-100"><i class="bi bi-box-arrow-left"></i> Cerrar Sesión</a></div>
+    </nav>
+
+    <main class="main-content">
+        
+        <div class="d-flex justify-content-between align-items-end mb-4">
+            <div>
+                <h2 class="fw-bold text-dark">Inventario General</h2>
+                <p class="text-muted mb-0">Gestiona los recursos de la biblioteca.</p>
+            </div>
+            
+            <div class="d-flex gap-2">
+                <form action="{{ url_for('inventario') }}" method="GET" class="d-flex bg-white p-1 rounded border shadow-sm me-2">
+                    <select name="categoria" class="form-select border-0 me-1" style="max-width: 200px; font-weight: 500;" onchange="this.form.submit()">
+                        <option value="Todas" {% if filtro_activo == 'Todas' or filtro_activo == None %}selected{% endif %}>Mostrar Todo</option>
+                        <option disabled>──────────</option>
+                        {% for cat in categorias %}
+                            <option value="{{ cat }}" {% if filtro_activo == cat %}selected{% endif %}>{{ cat }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn btn-primary px-3" title="Filtrar en pantalla">
+                        <i class="bi bi-funnel"></i>
+                    </button>
+                </form>
+
+                <a href="{{ url_for('imprimir_inventario', categoria=filtro_activo) }}" target="_blank" class="btn btn-secondary d-flex align-items-center me-2">
+                    <i class="bi bi-printer me-2"></i> Reporte
+                </a>
+
+                <a href="{{ url_for('nuevo_recurso') }}" class="btn btn-success d-flex align-items-center shadow-sm">
+                    <i class="bi bi-plus-lg me-2"></i> Nuevo Recurso
+                </a>
+            </div>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover mb-0 align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>Título</th>
+                                <th>Autor</th>
+                                <th>Categoría</th>
+                                <th>Stock</th>
+                                <th class="text-end pe-4">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for recurso in recursos %}
+                            <tr>
+                                <td>{{ recurso.id_recurso }}</td>
+                                <td class="fw-bold">{{ recurso.titulo }}</td>
+                                <td>{{ recurso.autor }}</td>
+                                <td>
+                                    <span class="badge bg-light text-dark border">{{ recurso.categoria }}</span>
+                                </td>
+                                <td>
+                                    {% if recurso.tipo_recurso == 'fisico' %}
+                                        {% if recurso.ejemplares_disponibles > 0 %}
+                                            <span class="badge bg-success rounded-pill">{{ recurso.ejemplares_disponibles }} / {{ recurso.ejemplares_total }}</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Agotado</span>
+                                        {% endif %}
+                                    {% else %}
+                                        <small class="text-muted"><i class="bi bi-cloud-check"></i> Digital</small>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end pe-3">
+                                    
+                                    {% if recurso.tipo_recurso == 'fisico' %}
+                                        <a href="{{ url_for('ver_qr', recurso_id=recurso.id_recurso) }}" class="btn btn-sm btn-info text-white me-1" title="Generar QR"><i class="bi bi-qr-code"></i></a>
+                                    {% else %}
+                                        <span class="d-inline-block" style="width: 32px;"></span>
+                                    {% endif %}
+                                    
+                                    <a href="{{ url_for('editar_recurso_form', recurso_id=recurso.id_recurso) }}" class="btn btn-sm btn-outline-secondary me-1" title="Editar"><i class="bi bi-pencil"></i></a>
+                                    
+                                    <form action="{{ url_for('eliminar_recurso', recurso_id=recurso.id_recurso) }}" method="POST" style="display:inline;" onsubmit="return confirm('¿Seguro que deseas ELIMINAR este recurso?');">
+                                        <button type="submit" class="btn btn-sm btn-danger" title="Eliminar"><i class="bi bi-trash"></i></button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center py-5 text-muted">
+                                    <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                                    No hay recursos registrados o no hay coincidencias con el filtro activo.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

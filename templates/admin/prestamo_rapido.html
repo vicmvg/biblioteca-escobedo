@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Préstamo Rápido - BDMES</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+    
+    <style>
+        body { background-color: #f0f2f5; height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .loan-card { max-width: 500px; width: 100%; border: none; border-radius: 15px; overflow: hidden; }
+        .book-cover-placeholder { height: 150px; background-color: #e9ecef; display: flex; align-items: center; justify-content: center; color: #6c757d; }
+        .status-badge { font-size: 0.9rem; padding: 8px 12px; border-radius: 20px; }
+    </style>
+</head>
+<body>
+
+    <div class="container d-flex justify-content-center">
+        <div class="card loan-card shadow-lg">
+            
+            <div class="card-header bg-primary text-white text-center py-4 position-relative">
+                <a href="{{ url_for('inventario') }}" class="btn btn-sm btn-light position-absolute top-0 start-0 m-3 rounded-circle"><i class="bi bi-arrow-left"></i></a>
+                
+                <h3 class="fw-bold mb-0">{{ recurso.titulo }}</h3>
+                <p class="mb-0 opacity-75">{{ recurso.autor }}</p>
+                
+                {% if recurso.ejemplares_disponibles > 0 %}
+                    <span class="badge bg-success status-badge mt-2 shadow-sm">
+                        <i class="bi bi-check-circle-fill"></i> Disponible ({{ recurso.ejemplares_disponibles }} / {{ recurso.ejemplares_total }})
+                    </span>
+                {% else %}
+                    <span class="badge bg-danger status-badge mt-2 shadow-sm">
+                        <i class="bi bi-x-circle-fill"></i> Agotado (0 / {{ recurso.ejemplares_total }})
+                    </span>
+                {% endif %}
+            </div>
+
+            <div class="card-body p-4">
+                <div class="text-center mb-4">
+                    <p class="text-muted">Escaneaste el código QR del libro ID: <strong>{{ recurso.id_recurso }}</strong></p>
+                    <h5 class="text-primary fw-bold">Registrar Préstamo a Alumno</h5>
+                </div>
+
+                <form action="{{ url_for('prestamo_rapido', recurso_id=recurso.id_recurso) }}" method="POST">
+                    
+                    <div class="form-floating mb-3">
+                        <input type="text" class="form-control" id="alumnoInput" name="alumno_nombre" placeholder="Nombre completo" required>
+                        <label for="alumnoInput"><i class="bi bi-person-fill"></i> Nombre del Alumno</label>
+                    </div>
+
+                    <div class="row g-2 mb-4">
+                        <div class="col-6">
+                            <div class="form-floating">
+                                <select class="form-select" id="gradoSelect" name="grado" required>
+                                    <option value="" selected disabled>Selecciona</option>
+                                    <option value="1">1°</option>
+                                    <option value="2">2°</option>
+                                    <option value="3">3°</option>
+                                    <option value="4">4°</option>
+                                    <option value="5">5°</option>
+                                    <option value="6">6°</option>
+                                </select>
+                                <label for="gradoSelect">Grado</label>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-floating">
+                                <select class="form-select" id="grupoSelect" name="grupo" required>
+                                    <option value="" selected disabled>Selecciona</option>
+                                    <option value="A">A</option>
+                                    <option value="B">B</option>
+                                    <option value="C">C</option>
+                                </select>
+                                <label for="grupoSelect">Grupo</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if recurso.ejemplares_disponibles > 0 %}
+                        <button type="submit" class="btn btn-primary w-100 py-3 fw-bold shadow-sm">
+                            <i class="bi bi-check-lg me-2"></i> Confirmar Préstamo
+                        </button>
+                    {% else %}
+                        <div class="alert alert-danger text-center" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill"></i> No se puede prestar: Sin Stock.
+                        </div>
+                        <button type="button" class="btn btn-secondary w-100 py-3 fw-bold" disabled>
+                            Stock Agotado
+                        </button>
+                    {% endif %}
+                    
+                </form>
+            </div>
+            
+            <div class="card-footer bg-light text-center py-3">
+                <small class="text-muted">Se registrará la fecha de hoy automáticamente.</small>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

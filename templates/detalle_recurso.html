@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Detalle del Recurso - BDMES</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+    <style>
+        body { background-color: #f4f7f6; font-family: 'Segoe UI', sans-serif; }
+        .detail-card { border-radius: 20px; overflow: hidden; box-shadow: 0 15px 30px rgba(0,0,0,0.1); background: white; }
+        .img-container { background: #eee; min-height: 400px; display: flex; align-items: center; justify-content: center; }
+        .img-container img { max-width: 100%; height: auto; object-fit: contain; max-height: 500px; }
+        .content-container { padding: 40px; }
+        .back-btn { position: absolute; top: 20px; left: 20px; z-index: 10; }
+    </style>
+</head>
+<body>
+
+    <div class="container py-5 position-relative">
+        <a href="{{ url_for('inicio') }}" class="btn btn-light rounded-pill shadow-sm back-btn fw-bold">
+            <i class="bi bi-arrow-left"></i> Volver al Inicio
+        </a>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="card detail-card border-0">
+                    <div class="row g-0">
+                        <div class="col-md-5 img-container">
+                            {% if recurso.ruta_miniatura %}
+                                <img src="{{ url_for('static', filename=recurso.ruta_miniatura) }}" alt="{{ recurso.titulo }}">
+                            {% elif recurso.ruta_archivo_e2 %}
+                                <img src="{{ url_for('static', filename=recurso.ruta_archivo_e2) }}" alt="{{ recurso.titulo }}">
+                            {% else %}
+                                <div class="text-center text-muted">
+                                    <i class="bi bi-image fs-1"></i><p>Sin imagen</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-7 content-container">
+                            <span class="badge bg-primary mb-2 text-uppercase">{{ recurso.tipo_recurso }}</span>
+                            <h1 class="fw-bold mb-4 text-dark">{{ recurso.titulo }}</h1>
+                            
+                            <div class="text-muted" style="white-space: pre-wrap; line-height: 1.8;">
+                                {{ recurso.descripcion }}
+                            </div>
+
+                            <hr class="my-4">
+                            <p class="small text-muted mb-0">Biblioteca Digital "Mariano Escobedo"</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

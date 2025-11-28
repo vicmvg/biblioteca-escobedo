@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subir Recurso - BDMES</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+    
+    <style>
+        :root { --primary-color: #004d99; --sidebar-width: 280px; }
+        body { background-color: #f8f9fa; }
+        .sidebar { width: var(--sidebar-width); height: 100vh; position: fixed; top: 0; left: 0; background-color: var(--primary-color); color: white; padding-top: 20px; z-index: 1000; }
+        .sidebar .nav-link { color: rgba(255,255,255,0.8); margin-bottom: 5px; padding: 10px 20px; }
+        .main-content { margin-left: var(--sidebar-width); padding: 30px; }
+        .upload-zone { border: 2px dashed #004d99; border-radius: 10px; padding: 40px 20px; text-align: center; background-color: #f0f8ff; position: relative; cursor: pointer;}
+    </style>
+</head>
+<body>
+
+    <nav class="sidebar d-flex flex-column d-none d-md-flex">
+        <div class="px-4 mb-4"><h4>Admin BDMES</h4></div>
+        <ul class="nav flex-column pe-3">
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('admin_dashboard') }}"><i class="bi bi-speedometer2 me-2"></i> Resumen</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('inventario') }}"><i class="bi bi-collection me-2"></i> Inventario</a></li>
+            <li class="nav-item"><a class="nav-link active" href="{{ url_for('nuevo_recurso') }}" style="background:white; color:var(--primary-color); font-weight:bold; border-radius:0 25px 25px 0;"><i class="bi bi-cloud-arrow-up-fill me-2"></i> Subir Archivos</a></li>
+        </ul>
+    </nav>
+
+    <main class="main-content">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="bi bi-cloud-arrow-up-fill"></i> Nuevo Recurso</h2>
+            <a href="{{ url_for('inventario') }}" class="btn btn-outline-secondary">Cancelar</a>
+        </div>
+
+        <form action="{{ url_for('nuevo_recurso') }}" method="POST" enctype="multipart/form-data">
+            <div class="row">
+                <div class="col-md-7">
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-header bg-white"><h5 class="mb-0 text-primary">Datos del Recurso</h5></div>
+                        <div class="card-body">
+                            
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">¿Qué vas a subir?</label>
+                                <select class="form-select form-select-lg border-primary" name="tipo" id="tipoSelect" onchange="actualizarFormulario()">
+                                    <option value="pdf">📚 Libro Virtual (PDF)</option>
+                                    <option value="audio">🎧 Audiocuento (MP3)</option>
+                                    <option value="fisico">📖 Libro Físico (Estantería)</option> <option value="bio">👤 Biografía (Historia)</option>
+                                    <option value="efemeride">📅 Efeméride (Evento)</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Título / Nombre</label>
+                                <input type="text" class="form-control" name="titulo" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Categoría</label>
+                                <input list="categorias-datalist" class="form-control" name="categoria" placeholder="Escribe o selecciona una categoría" required>
+                                
+                                <datalist id="categorias-datalist">
+                                    {% for cat in categorias %}
+                                        <option value="{{ cat }}">
+                                    {% endfor %}
+                                </datalist>
+                            </div>
+
+                            <div class="mb-3" id="campoAutor">
+                                <label class="form-label fw-bold">Autor / Creador</label>
+                                <input type="text" class="form-control" name="autor" placeholder="Ej: Historiador X">
+                            </div>
+
+                            <div class="mb-3" id="campoStock" style="display:none;">
+                                <label class="form-label fw-bold text-danger">Stock Inicial (Ejemplares)</label>
+                                <input type="number" class="form-control" name="ejemplares_total" value="1" min="1">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold" id="labelDesc">Sinopsis / Descripción</label>
+                                <textarea class="form-control" rows="6" name="descripcion" placeholder="Breve resumen del contenido o historia completa..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card shadow-sm mb-4" id="cardMiniatura" style="display: none;">
+                        <div class="card-header bg-white"><h5 class="mb-0 text-info"><i class="bi bi-image"></i> Miniatura / Portada (Opcional)</h5></div>
+                        <div class="card-body">
+                            <p class="text-muted small">Sube una imagen cuadrada (JPG, PNG) para la portada. Si no subes, se usará una imagen por defecto.</p>
+                            <div class="upload-zone border-info" id="uploadZoneMiniatura">
+                                <input type="file" name="miniatura" id="miniaturaInput" accept="image/*">
+                                <i class="bi bi-image fs-1 text-info"></i>
+                                <h5 class="mt-2 text-info" id="textoSubidaMiniatura">Arrastra o haz clic para subir imagen</h5>
+                                <p class="text-info fw-bold mt-2" id="fileNameDisplayMiniatura"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-5">
+                    <div class="card shadow border-0">
+                        <div class="card-header bg-primary text-white"><h5 class="mb-0" id="headerArchivo">Archivo Principal</h5></div>
+                        <div class="card-body">
+                            <div class="upload-zone mb-3" id="uploadZone">
+                                <input type="file" name="archivo_digital" id="fileInput" required>
+                                <i class="bi bi-cloud-upload fs-1 text-primary"></i>
+                                <h5 class="mt-2" id="textoSubida">Subir PDF o Audio</h5>
+                                <p class="text-primary fw-bold mt-2" id="fileNameDisplay"></p>
+                            </div>
+                            <button type="submit" class="btn btn-success w-100 fw-bold py-2">
+                                <i class="bi bi-check-lg"></i> Guardar Recurso
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </main>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const fileNameDisplay = document.getElementById('fileNameDisplay');
+        const campoStock = document.getElementById('campoStock');
+        const campoAutor = document.getElementById('campoAutor');
+        const uploadZone = document.getElementById('uploadZone');
+
+        fileInput.addEventListener('change', function() {
+            if(this.files && this.files.length > 0) fileNameDisplay.textContent = this.files[0].name;
+        });
+
+        // LÓGICA DINÁMICA
+        function actualizarFormulario() {
+            const tipo = document.getElementById('tipoSelect').value;
+            const labelDesc = document.getElementById('labelDesc');
+            const cardMiniatura = document.getElementById('cardMiniatura'); // <-- NUEVO
+
+            // 1. Mostrar/Ocultar Stock
+            if (tipo === 'fisico') {
+                campoStock.style.display = 'block';
+            } else {
+                campoStock.style.display = 'none';
+            }
+
+            // 2. Mostrar/Ocultar y configurar Archivo
+            if (tipo === 'fisico') {
+                uploadZone.style.display = 'none';
+                fileInput.removeAttribute('required'); // No necesita archivo
+                campoAutor.style.display = 'block';
+                document.getElementById('headerArchivo').textContent = "Recurso Físico";
+            } else if (tipo === 'bio' || tipo === 'efemeride') {
+                uploadZone.style.display = 'block';
+                fileInput.setAttribute('required', 'required');
+                fileInput.accept = "image/*, application/pdf";
+                campoAutor.style.display = 'none'; // Biografía/Efeméride no requieren autor o es el mismo título
+                document.getElementById('headerArchivo').textContent = "Imagen Principal o Documento";
+                document.getElementById('textoSubida').textContent = "Subir Imagen/Cartel (Recomendado)";
+            } else { // PDF o Audio
+                uploadZone.style.display = 'block';
+                fileInput.setAttribute('required', 'required');
+                campoAutor.style.display = 'block';
+                document.getElementById('headerArchivo').textContent = "Archivo Principal";
+                document.getElementById('textoSubida').textContent = (tipo === 'pdf' ? "Subir PDF" : "Subir Audio (MP3)");
+                fileInput.accept = (tipo === 'pdf' ? ".pdf" : "audio/*");
+            }
+
+            // Lógica para mostrar/ocultar la miniatura (Siempre se muestra excepto para Efemérides)
+            if (tipo === 'efemeride') {
+                cardMiniatura.style.display = 'none';
+                miniaturaInput.removeAttribute('required'); // No es obligatoria
+            } else {
+                cardMiniatura.style.display = 'block';
+                // Si es un libro físico o virtual, la miniatura es muy recomendable
+                // miniaturaInput.setAttribute('required', 'required'); // Opcional, si quieres que siempre suban miniatura
+            }
+        }
+
+        // También inicializa el manejo de archivo para la miniatura
+        const miniaturaInput = document.getElementById('miniaturaInput'); // <-- NUEVO
+        const fileNameDisplayMiniatura = document.getElementById('fileNameDisplayMiniatura'); // <-- NUEVO
+        miniaturaInput.addEventListener('change', function() { // <-- NUEVO
+            if(this.files && this.files.length > 0) fileNameDisplayMiniatura.textContent = this.files[0].name; // <-- NUEVO
+        }); // <-- NUEVO
+
+        // Inicializar el formulario al cargar la página
+        actualizarFormulario();
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Admin - Biblioteca "Mariano Escobedo"</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+    
+    <style>
+        :root {
+            --primary-color: #004d99;
+            --secondary-color: #ffc107;
+            --sidebar-width: 280px;
+        }
+        
+        body { background-color: #f0f2f5; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+
+        /* --- SIDEBAR PROFESIONAL --- */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            position: fixed;
+            top: 0; left: 0;
+            background: linear-gradient(180deg, var(--primary-color) 0%, #003366 100%);
+            color: white;
+            padding-top: 20px;
+            z-index: 1000;
+            box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+        }
+        
+        .brand-section {
+            padding: 0 25px 25px 25px;
+            border-bottom: 1px solid rgba(255,255,255,0.15);
+            margin-bottom: 20px;
+        }
+        
+        .sidebar .nav-link {
+            color: rgba(255,255,255,0.85);
+            margin: 5px 15px;
+            padding: 12px 20px;
+            border-radius: 10px;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            color: var(--primary-color);
+            background-color: white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transform: translateX(5px);
+        }
+
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 30px;
+        }
+
+        /* --- TARJETAS DE ESTADÍSTICAS --- */
+        .stat-card {
+            border: none;
+            border-radius: 15px;
+            overflow: hidden;
+            transition: transform 0.3s;
+            position: relative;
+        }
+        .stat-card:hover { transform: translateY(-5px); }
+        
+        .stat-card .card-body { padding: 25px; z-index: 2; position: relative; }
+        .stat-card .icon-bg {
+            position: absolute;
+            right: 15px;
+            bottom: 15px;
+            font-size: 5rem;
+            opacity: 0.2;
+            z-index: 1;
+        }
+
+        /* --- BOTONES DE ACCIÓN RÁPIDA --- */
+        .quick-action-btn {
+            background: white;
+            border: none;
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            height: 100%;
+            transition: all 0.3s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            text-decoration: none;
+            display: block;
+            color: #555;
+        }
+        .quick-action-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            color: var(--primary-color);
+        }
+        .quick-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            display: inline-block;
+            padding: 15px;
+            border-radius: 50%;
+            background-color: #f8f9fa;
+            transition: background-color 0.3s;
+        }
+        .quick-action-btn:hover .quick-icon {
+            background-color: #e6f0ff;
+        }
+
+    </style>
+</head>
+<body>
+
+    <nav class="sidebar d-flex flex-column">
+        <div class="brand-section">
+            <h4 class="mb-0 fw-bold"><i class="bi bi-book-half"></i> Admin BDMES</h4>
+            <small class="text-white-50">Panel de Control Escolar</small>
+        </div>
+        
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link active" href="{{ url_for('admin_dashboard') }}">
+                    <i class="bi bi-grid-fill me-2"></i> Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('inventario') }}">
+                    <i class="bi bi-collection-fill me-2"></i> Inventario Libros
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('nuevo_recurso') }}">
+                    <i class="bi bi-cloud-arrow-up-fill me-2"></i> Subir Archivos
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('ver_qr') }}">
+                    <i class="bi bi-qr-code-scan me-2"></i> Herramientas QR
+                </a>
+            </li>
+            <li class="nav-item mt-3 border-top pt-3">
+                <a class="nav-link" href="{{ url_for('admin_perfil') }}">
+                    <i class="bi bi-person-gear me-2"></i> Configuración / Perfil
+                </a>
+            </li>
+        </ul>
+
+        <div class="mt-auto p-3 mb-3">
+            <a href="{{ url_for('logout') }}" class="btn btn-outline-light w-100 fw-bold border-2">
+                <i class="bi bi-box-arrow-left"></i> Cerrar Sesión
+            </a>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        
+        <div class="d-flex justify-content-between align-items-center mb-5">
+            <div>
+                <h2 class="fw-bold text-dark">Hola, {{ user_name }} 👋</h2>
+                <p class="text-muted">Bienvenido al panel de administración de la biblioteca.</p>
+            </div>
+            <div>
+                <span class="badge bg-white text-dark shadow-sm p-3 rounded-pill">
+                    <i class="bi bi-calendar-check text-primary"></i> Hoy es {{ today.strftime('%d de %B %Y') }}
+                </span>
+            </div>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm" role="alert">
+                    <i class="bi bi-info-circle-fill me-2"></i> {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- TARJETAS DE ESTADÍSTICAS CON DATOS DINÁMICOS -->
+        <div class="row g-4 mb-5">
+            <div class="col-md-3">
+                <div class="card stat-card text-white h-100 shadow-lg" style="background: linear-gradient(45deg, #4e73df, #224abe);">
+                    <div class="card-body">
+                        <h6 class="text-uppercase opacity-75 fw-bold small">Préstamos Activos</h6>
+                        <h2 class="display-4 fw-bold mb-0">{{ prestamos_activos }}</h2>
+                        <i class="bi bi-journal-bookmark-fill icon-bg"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stat-card text-dark h-100 shadow-lg" style="background: linear-gradient(45deg, #f6c23e, #dda20a);">
+                    <div class="card-body">
+                        <h6 class="text-uppercase opacity-75 fw-bold small">Total Libros Físicos</h6>
+                        <h2 class="display-4 fw-bold mb-0">{{ total_fisicos }}</h2>
+                        <i class="bi bi-bookshelf icon-bg text-dark"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stat-card text-white h-100 shadow-lg" style="background: linear-gradient(45deg, #1cc88a, #13855c);">
+                    <div class="card-body">
+                        <h6 class="text-uppercase opacity-75 fw-bold small">Recursos Digitales</h6>
+                        <h2 class="display-4 fw-bold mb-0">{{ recursos_digitales }}</h2>
+                        <i class="bi bi-file-earmark-pdf icon-bg"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stat-card text-white h-100 shadow-lg" style="background: linear-gradient(45deg, #e74a3b, #be2617);">
+                    <div class="card-body">
+                        <h6 class="text-uppercase opacity-75 fw-bold small">Vencidos / Atrasados</h6>
+                        <h2 class="display-4 fw-bold mb-0">{{ vencidos }}</h2>
+                        <i class="bi bi-alarm-fill icon-bg"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h5 class="text-secondary fw-bold mb-3"><i class="bi bi-lightning-charge-fill"></i> Acciones Rápidas</h5>
+        <div class="row g-4 mb-5">
+            <div class="col-md-4">
+                <a href="{{ url_for('inventario') }}" class="quick-action-btn">
+                    <span class="quick-icon text-primary"><i class="bi bi-qr-code-scan"></i></span>
+                    <h5 class="fw-bold">Nuevo Préstamo</h5>
+                    <p class="text-muted small mb-0">Escanear QR o buscar manual</p>
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="{{ url_for('nuevo_recurso') }}" class="quick-action-btn">
+                    <span class="quick-icon text-success"><i class="bi bi-cloud-arrow-up"></i></span>
+                    <h5 class="fw-bold">Subir Recurso</h5>
+                    <p class="text-muted small mb-0">Agregar PDF, Audio o Libro Físico</p>
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="{{ url_for('ver_qr') }}" class="quick-action-btn">
+                    <span class="quick-icon text-info"><i class="bi bi-printer"></i></span>
+                    <h5 class="fw-bold">Imprimir Etiquetas</h5>
+                    <p class="text-muted small mb-0">Generar códigos para libros nuevos</p>
+                </a>
+            </div>
+        </div>
+
+        <!-- NUEVA SECCIÓN DE RESPALDO -->
+        <div class="row mb-5">
+            <div class="col-md-12">
+                <div class="card shadow-lg border-0">
+                    <div class="card-body py-3">
+                        <h5 class="fw-bold text-danger mb-3"><i class="bi bi-shield-fill-exclamation me-2"></i> Mantenimiento y Respaldo</h5>
+                        <p class="text-muted small">Haz clic aquí para descargar una copia de seguridad de toda la información (inventario, préstamos y usuarios).</p>
+                        
+                        <a href="{{ url_for('descargar_respaldo') }}" class="btn btn-danger fw-bold py-2 px-4 shadow-sm" style="background: linear-gradient(90deg, #e74a3b, #be2617)!important;"
+                           onclick="return confirm('¿Confirmar la descarga del respaldo de la base de datos?');">
+                            <i class="bi bi-cloud-download-fill me-2"></i> Descargar Respaldo Ahora
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TABLA DE ÚLTIMOS MOVIMIENTOS CON DATOS DINÁMICOS -->
+        <div class="card shadow border-0 overflow-hidden">
+            <div class="card-header bg-white py-3 border-0">
+                <h5 class="mb-0 fw-bold text-primary"><i class="bi bi-clock-history"></i> Últimos Movimientos</h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">Alumno</th>
+                            <th>Grado</th>
+                            <th>Libro Prestado</th>
+                            <th>Fecha Límite</th>
+                            <th>Estado</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for prestamo in ultimos_prestamos %}
+                        <tr>
+                            <td class="ps-4 fw-bold">{{ prestamo.nombre_alumno }}</td>
+                            <td>{{ prestamo.grado_grupo }}</td>
+                            <td>{{ prestamo.libro.titulo }}</td>
+                            <td>{{ prestamo.fecha_devolucion_limite.strftime('%d %b %Y') }}</td>
+                            <td>
+                                {% if prestamo.estado == 'Activo' and prestamo.fecha_devolucion_limite < today %}
+                                    <span class="badge bg-danger rounded-pill">Vencido</span>
+                                {% elif prestamo.estado == 'Activo' %}
+                                    <span class="badge bg-warning text-dark rounded-pill">Activo</span>
+                                {% else %}
+                                    <span class="badge bg-secondary rounded-pill">Cerrado</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if prestamo.estado == 'Activo' %}
+                                    <form action="{{ url_for('devolver_prestamo', prestamo_id=prestamo.id_prestamo) }}" 
+                                          method="POST" 
+                                          style="display:inline;"
+                                          onsubmit="return confirm('¿Confirmar la recepción y devolución de {{ prestamo.nombre_alumno }}?');">
+                                        
+                                        <button type="submit" class="btn btn-sm btn-success fw-bold">
+                                            <i class="bi bi-check-lg me-1"></i> Recibir
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    <button class="btn btn-sm btn-light" disabled><i class="bi bi-clock-history"></i> Cerrado</button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center py-3 text-muted">No hay movimientos recientes registrados.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

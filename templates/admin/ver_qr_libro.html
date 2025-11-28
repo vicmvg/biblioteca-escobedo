@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Código QR - {{ recurso.titulo if recurso else 'Herramientas' }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+    
+    <style>
+        body { background-color: #f8f9fa; }
+        .sidebar { width: 280px; height: 100vh; position: fixed; top: 0; left: 0; background-color: #004d99; color: white; padding-top: 20px; }
+        .sidebar .nav-link { color: rgba(255,255,255,0.8); margin-bottom: 5px; }
+        .main-content { margin-left: 280px; padding: 30px; }
+        .qr-card { border: 2px solid #004d99; background-color: white; padding: 20px; border-radius: 15px; text-align: center; }
+        .qr-image { width: 200px; height: 200px; margin: 15px auto; }
+    </style>
+</head>
+<body>
+
+    <nav class="sidebar d-flex flex-column d-none d-md-flex">
+        <div class="px-4 mb-4"><h4>Admin BDMES</h4></div>
+        <ul class="nav flex-column pe-3">
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('admin_dashboard') }}">Resumen</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('inventario') }}">Inventario</a></li>
+        </ul>
+    </nav>
+
+    <main class="main-content">
+        
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="bi bi-qr-code"></i> Ficha y Código QR</h2>
+            <a href="{{ url_for('inventario') }}" class="btn btn-outline-secondary">Volver al Inventario</a>
+        </div>
+
+        {% if recurso %}
+        <div class="row">
+            <div class="col-md-7">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0 text-primary">Ficha Técnica del Recurso</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex">
+                            <div class="bg-light d-flex align-items-center justify-content-center rounded me-4" style="width: 150px; height: 200px;">
+                                <i class="bi bi-book fs-1 text-muted"></i>
+                            </div>
+                            
+                            <div>
+                                <h2 class="fw-bold mb-1">{{ recurso.titulo }}</h2>
+                                <h5 class="text-muted mb-3">{{ recurso.autor }}</h5>
+                                
+                                <p><strong>Tipo:</strong> <span class="badge bg-secondary">{{ recurso.tipo_recurso.upper() }}</span></p>
+                                <p><strong>ID Interno:</strong> #{{ recurso.id_recurso }}</p>
+                                
+                                <div class="p-3 bg-light rounded border mt-3">
+                                    <div class="row text-center">
+                                        <div class="col-6 border-end">
+                                            <small class="text-muted">Total Copias</small>
+                                            <h3 class="mb-0">{{ recurso.ejemplares_total }}</h3>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="text-muted">Disponibles</small>
+                                            <h3 class="mb-0 text-success">{{ recurso.ejemplares_disponibles }}</h3>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        <div class="d-grid gap-2">
+                             <a href="{{ url_for('editar_recurso_form', recurso_id=recurso.id_recurso) }}" class="btn btn-outline-primary"><i class="bi bi-pencil"></i> Editar Datos</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-5">
+                <div class="card shadow h-100 border-primary">
+                    <div class="card-header bg-primary text-white text-center">
+                        <h5 class="mb-0"><i class="bi bi-qr-code-scan"></i> Código QR de Préstamo</h5>
+                    </div>
+                    <div class="card-body text-center d-flex flex-column justify-content-center align-items-center">
+                        
+                        <p class="text-muted small mb-0">Escanea este código para iniciar un préstamo rápido de:</p>
+                        <p class="fw-bold">"{{ recurso.titulo }}"</p>
+                        
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={{ url_for('prestamo_rapido', recurso_id=recurso.id_recurso, _external=True) }}" 
+                             class="qr-image border p-2 rounded" 
+                             alt="QR Code">
+
+                        <small class="text-muted d-block mb-3">ID: {{ recurso.id_recurso }}</small>
+                        
+                        <div class="d-grid gap-2 w-100 px-4">
+                            <button onclick="window.print()" class="btn btn-warning fw-bold"><i class="bi bi-printer"></i> Imprimir Etiqueta</button>
+                            
+                            <a href="{{ url_for('prestamo_rapido', recurso_id=recurso.id_recurso) }}" class="btn btn-link btn-sm">
+                                <i class="bi bi-eye"></i> Ver pantalla de préstamo (Simulacro)
+                            </a>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        {% else %}
+        <div class="alert alert-warning text-center">
+            <h4><i class="bi bi-exclamation-triangle"></i> No se seleccionó ningún libro</h4>
+            <p>Por favor regresa al inventario y selecciona un libro para ver su QR.</p>
+            <a href="{{ url_for('inventario') }}" class="btn btn-primary">Ir al Inventario</a>
+        </div>
+        {% endif %}
+
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
