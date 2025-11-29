@@ -5,6 +5,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import date, timedelta
 import os
 import sys
+import boto3  # <-- Importación para S3 (IDrive e2)
 
 # --- CONFIGURACIÓN ---
 # Añadir la ruta base de la aplicación
@@ -23,6 +24,33 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True) 
 
 db = SQLAlchemy(app)
+
+# --- FUNCIÓN DE SUBIDA A IDRIVE E2 ---
+def upload_to_e2(file_storage, filename):
+    """Sube un archivo a IDrive e2 y retorna la URL pública."""
+    try:
+        # Render leerá las credenciales desde las Variables de Entorno
+        s3 = boto3.client(
+            's3',
+            aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
+            aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'),
+            endpoint_url=os.environ.get('S3_ENDPOINT_URL')
+        )
+        bucket_name = os.environ.get('S3_BUCKET_NAME')
+        s3_key = f"recursos/{filename}" 
+        s3.upload_fileobj(
+            file_storage,
+            bucket_name,
+            s3_key,
+            ExtraArgs={'ContentType': file_storage.content_type}
+        )
+        # Construye la URL pública
+        # Reemplaza 'https://[endpoint]' por 'https://[bucket].[endpoint]'
+        url_base = os.environ.get('S3_ENDPOINT_URL').replace('https://', f'https://{bucket_name}.')
+        return f"{url_base}/{s3_key}"
+    except Exception as e:
+        print(f"ERROR AL SUBIR A IDRIVE E2: {e}")
+        return None
 
 # --- MODELOS ---
 class Usuario(db.Model):
@@ -222,7 +250,7 @@ def inventario():
                            filtro_activo=filtro_categoria,
                            user_name=session.get('user_name'))
 
-# RUTA DE SUBIDA (CORREGIDA PARA LEER STOCK)
+# RUTA DE SUBIDA (MODIFICADA PARA USAR IDRIVE E2)
 @app.route('/admin/nuevo-recurso', methods=['GET', 'POST'])
 def nuevo_recurso():
     if 'loggedin' not in session: return redirect(url_for('admin_login'))
@@ -243,20 +271,27 @@ def nuevo_recurso():
             ejemplares_input = request.form.get('ejemplares_total')
             ejemplares_total = int(ejemplares_input) if ejemplares_input and ejemplares_input.isdigit() else 0
             
-            # LÓGICA DE ARCHIVO PRINCIPAL
+            # --- NUEVA LÓGICA DE SUBIDA A LA NUBE (IDrive e2) ---
             archivo = request.files.get('archivo_digital')
             ruta_final = None 
-
             if archivo and archivo.filename != '':
                 nombre_seguro = secure_filename(archivo.filename)
-                nombre_archivo = f"{titulo[:10].replace(' ','_')}_{nombre_seguro}"
                 
-                ruta_sistema = os.path.join(app.config['UPLOAD_FOLDER'], nombre_archivo)
-                archivo.save(ruta_sistema)
+                # 1. Creamos un nombre único
+                nombre_archivo_final = f"{titulo[:10].replace(' ','_')}_{nombre_seguro}"
                 
-                ruta_final = f"uploads/{nombre_archivo}"
+                # 2. Subimos a IDrive e2 y obtenemos la URL
+                s3_url = upload_to_e2(archivo, nombre_archivo_final)
+                
+                if s3_url:
+                    ruta_final = s3_url # ¡Guardamos la URL pública en lugar de la ruta local!
+                else:
+                    flash("Error al subir el archivo a IDrive e2. Verifica las credenciales.", 'danger')
+                    return redirect(url_for('nuevo_recurso'))
             
-            # LÓGICA DE MINIATURA
+            # --- FIN LÓGICA DE LA NUBE ---
+            
+            # LÓGICA DE MINIATURA (TAMBIÉN SUBIDA A LA NUBE)
             miniatura = request.files.get('miniatura')
             ruta_miniatura_final = None
 
@@ -264,10 +299,13 @@ def nuevo_recurso():
                 nombre_seguro_miniatura = secure_filename(miniatura.filename)
                 nombre_miniatura = f"min_{titulo[:10].replace(' ','_')}_{nombre_seguro_miniatura}"
                 
-                ruta_sistema_miniatura = os.path.join(app.config['UPLOAD_FOLDER'], nombre_miniatura)
-                miniatura.save(ruta_sistema_miniatura)
+                # Subir miniatura a IDrive e2
+                s3_url_miniatura = upload_to_e2(miniatura, nombre_miniatura)
                 
-                ruta_miniatura_final = f"uploads/{nombre_miniatura}"
+                if s3_url_miniatura:
+                    ruta_miniatura_final = s3_url_miniatura
+                else:
+                    flash("Advertencia: No se pudo subir la miniatura a IDrive e2.", 'warning')
 
             nuevo = Recurso(
                 titulo=titulo, autor=autor, tipo_recurso=tipo,
@@ -275,12 +313,12 @@ def nuevo_recurso():
                 categoria=categoria, 
                 ejemplares_total=ejemplares_total, 
                 ejemplares_disponibles=ejemplares_total, 
-                ruta_archivo_e2=ruta_final,
+                ruta_archivo_e2=ruta_final,  # Aquí se guarda la URL de la nube
                 ruta_miniatura=ruta_miniatura_final
             )
             db.session.add(nuevo)
             db.session.commit()
-            flash(f"Recurso '{titulo}' subido correctamente.", 'success')
+            flash(f"Recurso '{titulo}' subido correctamente a IDrive e2.", 'success')
             return redirect(url_for('inventario'))
         
         except Exception as e:
