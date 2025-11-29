@@ -195,7 +195,7 @@
                             <span class="badge bg-light text-danger border border-danger mb-3 align-self-start">{{ libro.categoria }}</span>
                             
                             <div class="mt-auto d-grid">
-                                <a href="{{ url_for('static', filename=libro.ruta_archivo_e2) }}" target="_blank" class="btn btn-outline-danger btn-pill fw-bold">
+                                <a href="{{ url_for('ver_archivo_privado', recurso_id=libro.id_recurso) }}" target="_blank" class="btn btn-outline-danger btn-pill fw-bold">
                                     <i class="bi bi-eye-fill"></i> Leer Libro
                                 </a>
                             </div>
@@ -237,7 +237,7 @@
                             
                             <div class="bg-light p-2 rounded-3">
                                 <audio controls class="w-100" style="height: 30px;">
-                                    <source src="{{ url_for('static', filename=audio.ruta_archivo_e2) }}" type="audio/mpeg">
+                                    <source src="{{ url_for('ver_archivo_privado', recurso_id=audio.id_recurso) }}" type="audio/mpeg">
                                     Tu navegador no soporta audio.
                                 </audio>
                             </div>

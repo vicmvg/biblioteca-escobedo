@@ -25,9 +25,9 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 db = SQLAlchemy(app)
 
-# --- FUNCIÓN DE SUBIDA A IDRIVE E2 ---
+# --- FUNCIÓN DE SUBIDA A IDRIVE E2 (MODIFICADA) ---
 def upload_to_e2(file_storage, filename):
-    """Sube un archivo a IDrive e2 y retorna la URL pública."""
+    """Sube un archivo a IDrive e2 y retorna SOLO la clave (el camino interno en la nube)."""
     try:
         # Render leerá las credenciales desde las Variables de Entorno
         s3 = boto3.client(
@@ -36,18 +36,21 @@ def upload_to_e2(file_storage, filename):
             aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'),
             endpoint_url=os.environ.get('S3_ENDPOINT_URL')
         )
+        
         bucket_name = os.environ.get('S3_BUCKET_NAME')
-        s3_key = f"recursos/{filename}" 
+        s3_key = f"recursos/{filename}"  # Carpeta/Nombre
+        
+        # Subir el archivo (Ya no necesitamos ACL public-read)
         s3.upload_fileobj(
             file_storage,
             bucket_name,
             s3_key,
             ExtraArgs={'ContentType': file_storage.content_type}
         )
-        # Construye la URL pública
-        # Reemplaza 'https://[endpoint]' por 'https://[bucket].[endpoint]'
-        url_base = os.environ.get('S3_ENDPOINT_URL').replace('https://', f'https://{bucket_name}.')
-        return f"{url_base}/{s3_key}"
+        
+        # --- CAMBIO IMPORTANTE: Retornamos solo la clave interna ---
+        return s3_key
+        
     except Exception as e:
         print(f"ERROR AL SUBIR A IDRIVE E2: {e}")
         return None
@@ -280,11 +283,11 @@ def nuevo_recurso():
                 # 1. Creamos un nombre único
                 nombre_archivo_final = f"{titulo[:10].replace(' ','_')}_{nombre_seguro}"
                 
-                # 2. Subimos a IDrive e2 y obtenemos la URL
-                s3_url = upload_to_e2(archivo, nombre_archivo_final)
+                # 2. Subimos a IDrive e2 y obtenemos la CLAVE
+                s3_key = upload_to_e2(archivo, nombre_archivo_final)
                 
-                if s3_url:
-                    ruta_final = s3_url # ¡Guardamos la URL pública en lugar de la ruta local!
+                if s3_key:
+                    ruta_final = s3_key # ¡Guardamos la CLAVE en lugar de la URL completa!
                 else:
                     flash("Error al subir el archivo a IDrive e2. Verifica las credenciales.", 'danger')
                     return redirect(url_for('nuevo_recurso'))
@@ -300,10 +303,10 @@ def nuevo_recurso():
                 nombre_miniatura = f"min_{titulo[:10].replace(' ','_')}_{nombre_seguro_miniatura}"
                 
                 # Subir miniatura a IDrive e2
-                s3_url_miniatura = upload_to_e2(miniatura, nombre_miniatura)
+                s3_key_miniatura = upload_to_e2(miniatura, nombre_miniatura)
                 
-                if s3_url_miniatura:
-                    ruta_miniatura_final = s3_url_miniatura
+                if s3_key_miniatura:
+                    ruta_miniatura_final = s3_key_miniatura
                 else:
                     flash("Advertencia: No se pudo subir la miniatura a IDrive e2.", 'warning')
 
@@ -313,7 +316,7 @@ def nuevo_recurso():
                 categoria=categoria, 
                 ejemplares_total=ejemplares_total, 
                 ejemplares_disponibles=ejemplares_total, 
-                ruta_archivo_e2=ruta_final,  # Aquí se guarda la URL de la nube
+                ruta_archivo_e2=ruta_final,  # Aquí se guarda la CLAVE de la nube
                 ruta_miniatura=ruta_miniatura_final
             )
             db.session.add(nuevo)
@@ -496,6 +499,37 @@ def descargar_respaldo():
     return send_file(db_path, 
                      as_attachment=True,
                      download_name=f"biblioteca_backup_{date.today().strftime('%Y%m%d')}.db")
+
+# --- NUEVA RUTA: PASE VIP PARA ARCHIVOS PRIVADOS ---
+@app.route('/ver-archivo-privado/<int:recurso_id>')
+def ver_archivo_privado(recurso_id):
+    """Genera un enlace temporal (firmado) para ver un archivo privado."""
+    recurso = db.session.get(Recurso, recurso_id)
+    if not recurso or not recurso.ruta_archivo_e2:
+        flash("Archivo no encontrado.", "danger")
+        return redirect(url_for('inicio'))
+    try:
+        # 1. Conectamos a IDrive
+        s3 = boto3.client(
+            's3',
+            aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
+            aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'),
+            endpoint_url=os.environ.get('S3_ENDPOINT_URL')
+        )
+        # 2. Generamos el "Pase VIP" (URL firmada) válido por 1 hora (3600 seg)
+        bucket_name = os.environ.get('S3_BUCKET_NAME')
+        url_firmada = s3.generate_presigned_url(
+            'get_object',
+            Params={'Bucket': bucket_name, 'Key': recurso.ruta_archivo_e2},
+            ExpiresIn=3600 
+        )
+        
+        # 3. Redirigimos al usuario a ese enlace temporal
+        return redirect(url_firmada)
+    except Exception as e:
+        print(f"Error generando link firmado: {e}")
+        flash("Error al acceder al archivo en la nube.", "danger")
+        return redirect(url_for('inicio'))
 
 @app.route('/logout')
 def logout():
