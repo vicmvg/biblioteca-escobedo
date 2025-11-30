@@ -14,8 +14,13 @@ BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 app = Flask(__name__)
 app.secret_key = os.urandom(24) 
 
-# Conexión a la base de datos (Usando la ruta absoluta para el deployment)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(BASE_DIR, 'biblioteca.db') # <-- RUTA ABSOLUTA PARA LA DB
+# --- CONFIGURACIÓN INTELIGENTE DE BASE DE DATOS ---
+# Si hay una base de datos en la nube (Render), usa esa. Si no, usa la local.
+database_url = os.environ.get('DATABASE_URL', 'sqlite:///' + os.path.join(BASE_DIR, 'biblioteca.db'))
+# Corrección necesaria para PostgreSQL en Render (cambia postgres:// por postgresql://)
+if database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql://", 1)
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Configuración de carpeta para archivos reales
@@ -94,8 +99,7 @@ class Prestamo(db.Model):
 # --- INICIALIZACIÓN ---
 def inicializar_bd():
     with app.app_context():
-        if not os.path.exists('biblioteca.db'):
-            db.create_all()
+        db.create_all()
         if Usuario.query.filter_by(rol='admin').first() is None:
             hashed = generate_password_hash('123', method='pbkdf2:sha256')
             admin = Usuario(nombre='Maestra Bibliotecaria', 
@@ -258,7 +262,7 @@ def inventario():
 def nuevo_recurso():
     if 'loggedin' not in session: return redirect(url_for('admin_login'))
     
-    # Obtener categorías existentes
+    # Obtener categorías para el datalist
     categorias_existentes = db.session.query(Recurso.categoria).distinct().all()
     categorias_list = sorted([c[0] for c in categorias_existentes if c[0]])
     
@@ -270,65 +274,43 @@ def nuevo_recurso():
             descripcion = request.form.get('descripcion')
             categoria = request.form.get('categoria')
             
-            # LÓGICA DE STOCK (CORREGIDA)
             ejemplares_input = request.form.get('ejemplares_total')
             ejemplares_total = int(ejemplares_input) if ejemplares_input and ejemplares_input.isdigit() else 0
             
-            # --- NUEVA LÓGICA DE SUBIDA A LA NUBE (IDrive e2) ---
+            # 1. SUBIR ARCHIVO PRINCIPAL A LA NUBE
             archivo = request.files.get('archivo_digital')
             ruta_final = None 
             if archivo and archivo.filename != '':
                 nombre_seguro = secure_filename(archivo.filename)
-                
-                # 1. Creamos un nombre único
-                nombre_archivo_final = f"{titulo[:10].replace(' ','_')}_{nombre_seguro}"
-                
-                # 2. Subimos a IDrive e2 y obtenemos la CLAVE
-                s3_key = upload_to_e2(archivo, nombre_archivo_final)
-                
-                if s3_key:
-                    ruta_final = s3_key # ¡Guardamos la CLAVE en lugar de la URL completa!
-                else:
-                    flash("Error al subir el archivo a IDrive e2. Verifica las credenciales.", 'danger')
-                    return redirect(url_for('nuevo_recurso'))
+                nombre_archivo = f"{titulo[:10].replace(' ','_')}_{nombre_seguro}"
+                ruta_final = upload_to_e2(archivo, nombre_archivo) # Sube y guarda la clave
             
-            # --- FIN LÓGICA DE LA NUBE ---
-            
-            # LÓGICA DE MINIATURA (TAMBIÉN SUBIDA A LA NUBE)
+            # 2. SUBIR MINIATURA A LA NUBE (¡ESTO FALTABA!)
             miniatura = request.files.get('miniatura')
             ruta_miniatura_final = None
-
             if miniatura and miniatura.filename != '':
-                nombre_seguro_miniatura = secure_filename(miniatura.filename)
-                nombre_miniatura = f"min_{titulo[:10].replace(' ','_')}_{nombre_seguro_miniatura}"
-                
-                # Subir miniatura a IDrive e2
-                s3_key_miniatura = upload_to_e2(miniatura, nombre_miniatura)
-                
-                if s3_key_miniatura:
-                    ruta_miniatura_final = s3_key_miniatura
-                else:
-                    flash("Advertencia: No se pudo subir la miniatura a IDrive e2.", 'warning')
-
+                nombre_seguro_min = secure_filename(miniatura.filename)
+                nombre_miniatura = f"min_{titulo[:10].replace(' ','_')}_{nombre_seguro_min}"
+                ruta_miniatura_final = upload_to_e2(miniatura, nombre_miniatura) # Sube y guarda la clave
+            
             nuevo = Recurso(
                 titulo=titulo, autor=autor, tipo_recurso=tipo,
-                descripcion=descripcion, 
-                categoria=categoria, 
+                descripcion=descripcion, categoria=categoria,
                 ejemplares_total=ejemplares_total, 
                 ejemplares_disponibles=ejemplares_total, 
-                ruta_archivo_e2=ruta_final,  # Aquí se guarda la CLAVE de la nube
-                ruta_miniatura=ruta_miniatura_final
+                ruta_archivo_e2=ruta_final,
+                ruta_miniatura=ruta_miniatura_final # Guarda la clave de la miniatura
             )
             db.session.add(nuevo)
             db.session.commit()
-            flash(f"Recurso '{titulo}' subido correctamente a IDrive e2.", 'success')
+            flash(f"Recurso '{titulo}' subido correctamente.", 'success')
             return redirect(url_for('inventario'))
         
         except Exception as e:
             db.session.rollback()
             print(f"ERROR: {e}")
             flash("Error al guardar el recurso.", 'danger')
-
+    
     return render_template('admin/nuevo_recurso.html', 
                            categorias=categorias_list,
                            user_name=session.get('user_name'))
@@ -530,6 +512,34 @@ def ver_archivo_privado(recurso_id):
         print(f"Error generando link firmado: {e}")
         flash("Error al acceder al archivo en la nube.", "danger")
         return redirect(url_for('inicio'))
+
+# --- NUEVA RUTA: PASE VIP PARA MINIATURAS/PORTADAS ---
+@app.route('/ver-portada/<int:recurso_id>')
+def ver_portada(recurso_id):
+    """Genera enlace temporal para ver la miniatura privada."""
+    recurso = db.session.get(Recurso, recurso_id)
+    # Si no tiene miniatura, redirige a una imagen vacía o error
+    if not recurso or not recurso.ruta_miniatura:
+        return redirect("https://via.placeholder.com/300x400?text=Sin+Portada")
+    try:
+        s3 = boto3.client(
+            's3',
+            aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
+            aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'),
+            endpoint_url=os.environ.get('S3_ENDPOINT_URL')
+        )
+        bucket_name = os.environ.get('S3_BUCKET_NAME')
+        
+        # Generar URL firmada para la imagen
+        url_firmada = s3.generate_presigned_url(
+            'get_object',
+            Params={'Bucket': bucket_name, 'Key': recurso.ruta_miniatura},
+            ExpiresIn=3600
+        )
+        return redirect(url_firmada)
+    except Exception as e:
+        print(f"Error portada: {e}")
+        return redirect("https://via.placeholder.com/300x400?text=Error")
 
 @app.route('/logout')
 def logout():
