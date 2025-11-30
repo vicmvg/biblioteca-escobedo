@@ -15,9 +15,52 @@
         .sidebar .nav-link:hover, .sidebar .nav-link.active { color: var(--primary-color); background-color: white; font-weight: bold; }
         .main-content { margin-left: var(--sidebar-width); padding: 30px; }
         .table-responsive { border-radius: 10px; }
+
+        /* --- ESTILOS PARA MÓVIL (RESPONSIVE) --- */
+        /* Cuando la pantalla sea menor a 768px (Tablets y Celulares) */
+        @media (max-width: 768px) {
+            /* 1. Ocultar la barra lateral fija */
+            .sidebar { 
+                display: none !important; 
+            }
+            
+            /* 2. Quitar el margen izquierdo del contenido */
+            .main-content { 
+                margin-left: 0 !important; 
+                padding: 15px !important; 
+            }
+            /* 3. Mostrar el menú de navegación móvil */
+            .mobile-nav {
+                display: block !important;
+            }
+        }
+        /* En computadora, el menú móvil está oculto */
+        .mobile-nav {
+            display: none;
+        }
     </style>
 </head>
 <body>
+
+    <nav class="navbar navbar-dark bg-primary mobile-nav shadow-sm mb-3">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold" href="#">
+                <i class="bi bi-book-half"></i> Menú Admin
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mobileMenu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse mt-2" id="mobileMenu">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0 bg-primary p-2 rounded">
+                    <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('admin_dashboard') }}">📊 Resumen</a></li>
+                    <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('inventario') }}">📚 Inventario</a></li>
+                    <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('nuevo_recurso') }}">☁️ Subir Archivos</a></li>
+                    <li class="nav-item"><hr class="dropdown-divider bg-white"></li>
+                    <li class="nav-item"><a class="nav-link text-warning" href="{{ url_for('logout') }}">🚪 Cerrar Sesión</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
 
     <nav class="sidebar d-flex flex-column d-none d-md-flex">
         <div class="px-4 mb-4"><h4>Admin BDMES</h4></div>

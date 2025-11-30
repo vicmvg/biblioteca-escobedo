@@ -12,6 +12,29 @@
         .loan-card { max-width: 500px; width: 100%; border: none; border-radius: 15px; overflow: hidden; }
         .book-cover-placeholder { height: 150px; background-color: #e9ecef; display: flex; align-items: center; justify-content: center; color: #6c757d; }
         .status-badge { font-size: 0.9rem; padding: 8px 12px; border-radius: 20px; }
+
+        /* --- ESTILOS PARA MÓVIL (RESPONSIVE) --- */
+        @media (max-width: 768px) {
+            body {
+                padding: 15px;
+                height: auto;
+                min-height: 100vh;
+            }
+            
+            .loan-card {
+                max-width: 100%;
+                margin: 10px 0;
+            }
+            
+            .card-header h3 {
+                font-size: 1.3rem;
+            }
+            
+            .status-badge {
+                font-size: 0.8rem;
+                padding: 6px 10px;
+            }
+        }
     </style>
 </head>
 <body>
