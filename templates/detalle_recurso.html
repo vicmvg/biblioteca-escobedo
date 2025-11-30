@@ -26,10 +26,8 @@
                 <div class="card detail-card border-0">
                     <div class="row g-0">
                         <div class="col-md-5 img-container">
-                            {% if recurso.ruta_miniatura %}
-                                <img src="{{ url_for('static', filename=recurso.ruta_miniatura) }}" alt="{{ recurso.titulo }}">
-                            {% elif recurso.ruta_archivo_e2 %}
-                                <img src="{{ url_for('static', filename=recurso.ruta_archivo_e2) }}" alt="{{ recurso.titulo }}">
+                            {% if recurso.ruta_miniatura or recurso.ruta_archivo_e2 %}
+                                <img src="{{ url_for('ver_portada', recurso_id=recurso.id_recurso) }}" class="img-fluid rounded shadow" alt="Portada">
                             {% else %}
                                 <div class="text-center text-muted">
                                     <i class="bi bi-image fs-1"></i><p>Sin imagen</p>
