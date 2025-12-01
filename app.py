@@ -473,6 +473,52 @@ def admin_perfil():
     
     return render_template('admin/perfil.html', usuario=usuario, user_name=session.get('user_name'))
 
+# --- EN app.py (Agregar esta nueva ruta) ---
+@app.route('/admin/prestamos')
+def gestion_prestamos():
+    if 'loggedin' not in session: return redirect(url_for('admin_login'))
+    
+    # Busca todos los préstamos que no se hayan devuelto
+    prestamos_activos = Prestamo.query.filter_by(estado='Activo').all()
+    
+    # Necesitamos pasar la fecha de hoy para calcular si están vencidos en la plantilla
+    hoy = date.today()
+    
+    return render_template('admin/gestion_prestamos.html', 
+                           prestamos=prestamos_activos, 
+                           hoy=hoy,
+                           user_name=session.get('user_name'))
+
+# --- EN app.py (Agregar esta nueva ruta) ---
+@app.route('/admin/devolver-libro/<int:prestamo_id>', methods=['POST'])
+def devolver_libro(prestamo_id):
+    if 'loggedin' not in session: return redirect(url_for('admin_login'))
+    
+    prestamo = db.session.get(Prestamo, prestamo_id)
+    if not prestamo or prestamo.estado != 'Activo':
+        flash('Error: El préstamo no es válido o ya fue devuelto.', 'danger')
+        return redirect(url_for('gestion_prestamos'))
+
+    try:
+        # 1. Marcar el préstamo como devuelto
+        prestamo.fecha_devolucion_real = date.today()
+        prestamo.estado = 'Devuelto'
+
+        # 2. Aumentar el stock del recurso
+        recurso = db.session.get(Recurso, prestamo.id_recurso)
+        if recurso and recurso.ejemplares_total > 0:
+            recurso.ejemplares_disponibles += 1
+        
+        db.session.commit()
+        flash(f"Devolución de '{prestamo.libro.titulo}' registrada con éxito.", 'success')
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"ERROR DE DEVOLUCIÓN: {e}")
+        flash('Error al procesar la devolución.', 'danger')
+
+    return redirect(url_for('gestion_prestamos'))
+
 # --- NUEVA RUTA DE DEVOLUCIÓN ---
 @app.route('/admin/devolver-prestamo/<int:prestamo_id>', methods=['POST'])
 def devolver_prestamo(prestamo_id):

@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Préstamos - Biblioteca "Mariano Escobedo"</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+    
+    <style>
+        :root {
+            --primary-color: #004d99;
+            --secondary-color: #ffc107;
+            --sidebar-width: 280px;
+        }
+        
+        body { background-color: #f0f2f5; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+
+        /* --- SIDEBAR PROFESIONAL --- */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            position: fixed;
+            top: 0; left: 0;
+            background: linear-gradient(180deg, var(--primary-color) 0%, #003366 100%);
+            color: white;
+            padding-top: 20px;
+            z-index: 1000;
+            box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+        }
+        
+        .brand-section {
+            padding: 0 25px 25px 25px;
+            border-bottom: 1px solid rgba(255,255,255,0.15);
+            margin-bottom: 20px;
+        }
+        
+        .sidebar .nav-link {
+            color: rgba(255,255,255,0.85);
+            margin: 5px 15px;
+            padding: 12px 20px;
+            border-radius: 10px;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            color: var(--primary-color);
+            background-color: white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transform: translateX(5px);
+        }
+
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 30px;
+        }
+
+        /* --- TARJETAS DE ESTADÍSTICAS --- */
+        .stat-card {
+            border: none;
+            border-radius: 15px;
+            overflow: hidden;
+            transition: transform 0.3s;
+            position: relative;
+        }
+        .stat-card:hover { transform: translateY(-5px); }
+        
+        .stat-card .card-body { padding: 25px; z-index: 2; position: relative; }
+        .stat-card .icon-bg {
+            position: absolute;
+            right: 15px;
+            bottom: 15px;
+            font-size: 5rem;
+            opacity: 0.2;
+            z-index: 1;
+        }
+
+        /* --- BOTONES DE ACCIÓN RÁPIDA --- */
+        .quick-action-btn {
+            background: white;
+            border: none;
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            height: 100%;
+            transition: all 0.3s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            text-decoration: none;
+            display: block;
+            color: #555;
+        }
+        .quick-action-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            color: var(--primary-color);
+        }
+        .quick-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            display: inline-block;
+            padding: 15px;
+            border-radius: 50%;
+            background-color: #f8f9fa;
+            transition: background-color 0.3s;
+        }
+        .quick-action-btn:hover .quick-icon {
+            background-color: #e6f0ff;
+        }
+
+        /* --- ESTILOS PARA MÓVIL (RESPONSIVE) --- */
+        /* Cuando la pantalla sea menor a 768px (Tablets y Celulares) */
+        @media (max-width: 768px) {
+            /* 1. Ocultar la barra lateral fija */
+            .sidebar { 
+                display: none !important; 
+            }
+            
+            /* 2. Quitar el margen izquierdo del contenido */
+            .main-content { 
+                margin-left: 0 !important; 
+                padding: 15px !important; 
+            }
+            /* 3. Mostrar el menú de navegación móvil (que crearemos abajo) */
+            .mobile-nav {
+                display: block !important;
+            }
+        }
+        /* En computadora, el menú móvil está oculto */
+        .mobile-nav {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-dark bg-primary mobile-nav shadow-sm mb-3">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold" href="#">
+                <i class="bi bi-book-half"></i> Menú Admin
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mobileMenu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse mt-2" id="mobileMenu">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0 bg-primary p-2 rounded">
+                    <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('admin_dashboard') }}">📊 Resumen</a></li>
+                    <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('inventario') }}">📚 Inventario</a></li>
+                    <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('nuevo_recurso') }}">☁️ Subir Archivos</a></li>
+                    <li class="nav-item"><hr class="dropdown-divider bg-white"></li>
+                    <li class="nav-item"><a class="nav-link text-warning" href="{{ url_for('logout') }}">🚪 Cerrar Sesión</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <nav class="sidebar d-flex flex-column">
+        <div class="brand-section">
+            <h4 class="mb-0 fw-bold"><i class="bi bi-book-half"></i> Admin BDMES</h4>
+            <small class="text-white-50">Panel de Control Escolar</small>
+        </div>
+        
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('admin_dashboard') }}">
+                    <i class="bi bi-grid-fill me-2"></i> Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('inventario') }}">
+                    <i class="bi bi-collection-fill me-2"></i> Inventario Libros
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="{{ url_for('gestion_prestamos') }}">
+                    <i class="bi bi-calendar-check-fill me-2"></i> Gestión Préstamos
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('nuevo_recurso') }}">
+                    <i class="bi bi-cloud-arrow-up-fill me-2"></i> Subir Archivos
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('ver_qr') }}">
+                    <i class="bi bi-qr-code-scan me-2"></i> Herramientas QR
+                </a>
+            </li>
+            <li class="nav-item mt-3 border-top pt-3">
+                <a class="nav-link" href="{{ url_for('admin_perfil') }}">
+                    <i class="bi bi-person-gear me-2"></i> Configuración / Perfil
+                </a>
+            </li>
+        </ul>
+
+        <div class="mt-auto p-3 mb-3">
+            <a href="{{ url_for('logout') }}" class="btn btn-outline-light w-100 fw-bold border-2">
+                <i class="bi bi-box-arrow-left"></i> Cerrar Sesión
+            </a>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <h2 class="fw-bold mb-4 text-primary"><i class="bi bi-calendar-check-fill me-2"></i> Gestión de Préstamos Activos</h2>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm" role="alert">
+                    <i class="bi bi-info-circle-fill me-2"></i> {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover mb-0 align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>Alumno</th>
+                                <th>Grado/Grupo</th>
+                                <th>Libro Prestado</th>
+                                <th>Fecha Préstamo</th>
+                                <th>Límite Devolución</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for prestamo in prestamos %}
+                            {% set vencido = prestamo.fecha_devolucion_limite < hoy %}
+                            <tr class="{% if vencido %}table-danger{% endif %}">
+                                <td>{{ prestamo.id_prestamo }}</td>
+                                <td class="fw-bold">{{ prestamo.nombre_alumno }}</td>
+                                <td>{{ prestamo.grado_grupo }}</td>
+                                <td><a href="{{ url_for('ver_recurso', recurso_id=prestamo.id_recurso) }}">{{ prestamo.libro.titulo }}</a></td>
+                                <td>{{ prestamo.fecha_prestamo.strftime('%d/%m/%Y') }}</td>
+                                <td class="fw-bold {% if vencido %}text-danger{% endif %}">
+                                    {{ prestamo.fecha_devolucion_limite.strftime('%d/%m/%Y') }}
+                                </td>
+                                <td>
+                                    {% if vencido %}
+                                        <span class="badge bg-danger rounded-pill">¡VENCIDO!</span>
+                                    {% else %}
+                                        <span class="badge bg-success rounded-pill">Activo</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <form method="POST" action="{{ url_for('devolver_libro', prestamo_id=prestamo.id_prestamo) }}" onsubmit="return confirm('¿Seguro que deseas registrar la devolución de {{ prestamo.libro.titulo }}?');" style="display:inline;">
+                                        <button type="submit" class="btn btn-sm btn-outline-success" title="Registrar Devolución">
+                                            <i class="bi bi-check-lg"></i> Devolver
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="8" class="text-center py-4 text-muted">No hay préstamos activos en este momento.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

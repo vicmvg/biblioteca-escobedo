@@ -68,6 +68,11 @@
             <li class="nav-item"><a class="nav-link" href="{{ url_for('admin_dashboard') }}"><i class="bi bi-speedometer2 me-2"></i> Resumen</a></li>
             <li class="nav-item"><a class="nav-link active" href="{{ url_for('inventario') }}" style="background:white; color:var(--primary-color); font-weight:bold; border-radius:0 25px 25px 0;"><i class="bi bi-collection-fill me-2"></i> Inventario</a></li>
             <li class="nav-item"><a class="nav-link" href="{{ url_for('nuevo_recurso') }}"><i class="bi bi-cloud-arrow-up-fill me-2"></i> Subir Archivos</a></li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('gestion_prestamos') }}">
+                    <i class="bi bi-calendar-check-fill me-2"></i> Gestión de Préstamos
+                </a>
+            </li>
         </ul>
         <div class="mt-auto p-3"><a href="{{ url_for('logout') }}" class="btn btn-outline-light w-100"><i class="bi bi-box-arrow-left"></i> Cerrar Sesión</a></div>
     </nav>
