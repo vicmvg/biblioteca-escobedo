@@ -334,17 +334,41 @@ def nuevo_recurso():
                            categorias=categorias_list,
                            user_name=session.get('user_name'))
 
+# --- EN app.py (Reemplazar la ruta /admin/imprimir-inventario) ---
 @app.route('/admin/imprimir-inventario')
 def imprimir_inventario():
     if 'loggedin' not in session: return redirect(url_for('admin_login'))
-    filtro = request.args.get('categoria')
-    if filtro and filtro != 'Todas':
-        recursos = Recurso.query.filter_by(categoria=filtro).all()
-        titulo = f"Reporte: {filtro}"
-    else:
-        recursos = Recurso.query.all()
-        titulo = "Inventario Completo"
-    return render_template('admin/imprimir_inventario.html', recursos=recursos, fecha=date.today(), titulo=titulo)
+    
+    # 1. Obtener filtros de la URL (igual que en la ruta inventario)
+    categoria_filtro = request.args.get('categoria_filtro')
+    tipo_filtro = request.args.get('tipo_filtro')
+    
+    consulta = Recurso.query 
+    
+    # Aplicar filtro de CATEGORÍA
+    if categoria_filtro and categoria_filtro != 'Todas':
+        consulta = consulta.filter_by(categoria=categoria_filtro)
+    
+    # Aplicar filtro de TIPO DE RECURSO
+    if tipo_filtro and tipo_filtro != 'Todos':
+        # Buscamos el nombre legible del tipo para que la consulta funcione
+        consulta = consulta.filter_by(tipo_recurso=tipo_filtro)
+    recursos = consulta.all()
+    
+    # 2. Construir el título del reporte
+    titulo = "Reporte de Inventario"
+    if categoria_filtro and categoria_filtro != 'Todas':
+        titulo += f" (Cat: {categoria_filtro})"
+    if tipo_filtro and tipo_filtro != 'Todos':
+        # Mapeo de tipos para el título del PDF
+        tipos_map = {'fisico': 'Físico', 'pdf': 'PDF', 'audio': 'Audio', 'bio': 'Biografía', 'efemeride': 'Efeméride'}
+        titulo += f" (Tipo: {tipos_map.get(tipo_filtro, tipo_filtro)})"
+    
+    # Esto asume que tienes un archivo llamado imprimir_inventario.html para el PDF
+    return render_template('admin/imprimir_inventario.html', 
+                           recursos=recursos, 
+                           fecha=date.today(), 
+                           titulo=titulo)
 
 @app.route('/admin/eliminar-recurso/<int:recurso_id>', methods=['POST'])
 def eliminar_recurso(recurso_id):
