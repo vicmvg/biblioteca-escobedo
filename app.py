@@ -783,9 +783,7 @@ def eliminar_avance(id_avance):
 def logout():
     session.clear()
     return redirect(url_for('inicio'))
-
-if __name__ == '__main__':
-# --- RUTA DE EMERGENCIA PARA RESETEAR LA BASE DE DATOS ---
+    # --- RUTA DE EMERGENCIA PARA RESETEAR LA BASE DE DATOS ---
 @app.route('/admin/reset-db-urgente')
 def reset_db_urgente():
     if 'loggedin' not in session: return "Error: Inicia sesión como administrador primero."
@@ -807,6 +805,6 @@ def reset_db_urgente():
     db.session.commit()
     
     return "¡Base de Datos Reiniciada! Tablas actualizadas correctamente."
-
+if __name__ == '__main__':
     inicializar_bd()
     app.run(debug=True, host='0.0.0.0', port=5000)
