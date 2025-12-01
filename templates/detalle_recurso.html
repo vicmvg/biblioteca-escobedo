@@ -61,18 +61,13 @@
                 <div class="card detail-card border-0">
                     <div class="row g-0">
                         <div class="col-md-5">
-                            {% if recurso.ruta_miniatura or recurso.ruta_archivo_e2 %}
-                                <div class="img-container">
+                            <div class="img-container">
+                                {% if recurso.ruta_miniatura %}
                                     <img src="{{ url_for('ver_portada', recurso_id=recurso.id_recurso) }}" class="img-fluid rounded shadow" alt="Portada de {{ recurso.titulo }}">
-                                </div>
-                            {% else %}
-                                <div class="img-container no-image text-center text-white">
-                                    <div>
-                                        <i class="bi bi-image fs-1 d-block mb-3"></i>
-                                        <p class="fw-bold">Sin imagen disponible</p>
-                                    </div>
-                                </div>
-                            {% endif %}
+                                {% else %}
+                                    <img src="https://via.placeholder.com/400x600?text=Sin+Portada" class="img-fluid rounded shadow" alt="Sin portada">
+                                {% endif %}
+                            </div>
                         </div>
                         
                         <div class="col-md-7 content-container">

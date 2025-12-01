@@ -362,7 +362,7 @@
                             <div class="col-4">
                                 {% if efe.ruta_miniatura or efe.ruta_archivo_e2 %}
                                     <div class="efemeride-img-container">
-                                        <img src="{{ url_for('ver_portada', recurso_id=efe.id_recurso) }}" alt="{{ efe.titulo }}">
+                                        <img src="{{ url_for('ver_portada', recurso_id=efe.id_recurso) }}" alt="{{ efe.titulo }}" class="img-fluid rounded-start h-100 object-fit-cover">
                                     </div>
                                 {% else %}
                                     <div class="efemeride-img-container bg-gradient-efemeride text-white">
