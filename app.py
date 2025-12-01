@@ -233,33 +233,36 @@ def admin_dashboard():
                            user_name=session.get('user_name'),
                            today=today)
 
-# RUTA INVENTARIO (ACTUALIZADA CON FILTROS DE CATEGORÍA Y TIPO)
+# --- EN app.py (Reemplazar la ruta /admin/inventario) ---
 @app.route('/admin/inventario')
 def inventario():
     if 'loggedin' not in session: return redirect(url_for('admin_login'))
     
-    # 1. Obtener filtros de la URL
+    # --- Lógica de FILTROS ---
     categoria_filtro = request.args.get('categoria_filtro')
     tipo_filtro = request.args.get('tipo_filtro')
-
-    # Base de la consulta
-    consulta = Recurso.query 
     
-    # 2. Aplicar filtro de CATEGORÍA
+    # --- Lógica de PAGINACIÓN ---
+    # Lee el número de página de la URL, si no existe, usa la página 1
+    page = request.args.get('page', 1, type=int) 
+    
+    # Base de la consulta
+    consulta = Recurso.query.order_by(Recurso.id_recurso.desc()) # Ordenar por ID para ver los nuevos primero
+    
+    # 1. Aplicar filtro de CATEGORÍA
     if categoria_filtro and categoria_filtro != 'Todas':
         consulta = consulta.filter_by(categoria=categoria_filtro)
     
-    # 3. Aplicar filtro de TIPO DE RECURSO
+    # 2. Aplicar filtro de TIPO DE RECURSO
     if tipo_filtro and tipo_filtro != 'Todos':
         consulta = consulta.filter_by(tipo_recurso=tipo_filtro)
     
-    # Ejecutar la consulta
-    recursos = consulta.all()
-
-    # Datos para los Dropdowns (Necesarios para la plantilla HTML)
-    categorias_existentes = sorted(list(set([r.categoria for r in Recurso.query.all() if r.categoria])))
+    # --- 3. Aplicar PAGINACIÓN ---
+    # Páginas por defecto: 10 elementos por página
+    recursos_paginados = consulta.paginate(page=page, per_page=10, error_out=False)
     
-    # Tipos de recurso fijos para el dropdown (deben coincidir con los de nuevo_recurso)
+    # Obtener categorías únicas y tipos
+    categorias_existentes = sorted(list(set([r.categoria for r in Recurso.query.all() if r.categoria])))
     tipos_existentes = [
         ('fisico', 'Libro Físico'), 
         ('pdf', 'PDF Digital'), 
@@ -269,11 +272,12 @@ def inventario():
     ]
     
     return render_template('admin/inventario.html', 
-                           recursos=recursos, 
+                           recursos=recursos_paginados.items, # Solo los items de la página actual
+                           paginador=recursos_paginados,     # Objeto completo de paginación
                            categorias=categorias_existentes,
-                           tipos=tipos_existentes, # Nuevo: Tipos de recurso
-                           categoria_seleccionada=categoria_filtro, # Nuevo: Categoría seleccionada
-                           tipo_seleccionado=tipo_filtro, # Nuevo: Tipo seleccionado
+                           tipos=tipos_existentes,
+                           categoria_seleccionada=categoria_filtro,
+                           tipo_seleccionado=tipo_filtro,
                            user_name=session.get('user_name'))
 
 # RUTA DE SUBIDA (MODIFICADA PARA USAR IDRIVE E2)
