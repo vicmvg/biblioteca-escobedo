@@ -785,5 +785,28 @@ def logout():
     return redirect(url_for('inicio'))
 
 if __name__ == '__main__':
+# --- RUTA DE EMERGENCIA PARA RESETEAR LA BASE DE DATOS ---
+@app.route('/admin/reset-db-urgente')
+def reset_db_urgente():
+    if 'loggedin' not in session: return "Error: Inicia sesión como administrador primero."
+    
+    # 1. Borrar tablas viejas
+    db.drop_all()
+    
+    # 2. Crear tablas nuevas (Incluyendo la de Avances)
+    db.create_all()
+    
+    # 3. Restaurar al administrador
+    hashed = generate_password_hash('123', method='pbkdf2:sha256')
+    admin = Usuario(nombre='Maestra Bibliotecaria', 
+                    email='admin@escobedo.edu', 
+                    password_hash=hashed, 
+                    rol='admin',
+                    token_recuperacion='ME2025')
+    db.session.add(admin)
+    db.session.commit()
+    
+    return "¡Base de Datos Reiniciada! Tablas actualizadas correctamente."
+
     inicializar_bd()
     app.run(debug=True, host='0.0.0.0', port=5000)
