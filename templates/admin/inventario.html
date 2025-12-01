@@ -74,34 +74,14 @@
 
     <main class="main-content">
         
-        <div class="d-flex justify-content-between align-items-end mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
                 <h2 class="fw-bold text-dark">Inventario General</h2>
                 <p class="text-muted mb-0">Gestiona los recursos de la biblioteca.</p>
             </div>
-            
-            <div class="d-flex gap-2">
-                <form action="{{ url_for('inventario') }}" method="GET" class="d-flex bg-white p-1 rounded border shadow-sm me-2">
-                    <select name="categoria" class="form-select border-0 me-1" style="max-width: 200px; font-weight: 500;" onchange="this.form.submit()">
-                        <option value="Todas" {% if filtro_activo == 'Todas' or filtro_activo == None %}selected{% endif %}>Mostrar Todo</option>
-                        <option disabled>──────────</option>
-                        {% for cat in categorias %}
-                            <option value="{{ cat }}" {% if filtro_activo == cat %}selected{% endif %}>{{ cat }}</option>
-                        {% endfor %}
-                    </select>
-                    <button type="submit" class="btn btn-primary px-3" title="Filtrar en pantalla">
-                        <i class="bi bi-funnel"></i>
-                    </button>
-                </form>
-
-                <a href="{{ url_for('imprimir_inventario', categoria=filtro_activo) }}" target="_blank" class="btn btn-secondary d-flex align-items-center me-2">
-                    <i class="bi bi-printer me-2"></i> Reporte
-                </a>
-
-                <a href="{{ url_for('nuevo_recurso') }}" class="btn btn-success d-flex align-items-center shadow-sm">
-                    <i class="bi bi-plus-lg me-2"></i> Nuevo Recurso
-                </a>
-            </div>
+            <a href="{{ url_for('nuevo_recurso') }}" class="btn btn-success d-flex align-items-center shadow-sm">
+                <i class="bi bi-plus-lg me-2"></i> Nuevo Recurso
+            </a>
         </div>
 
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -114,6 +94,36 @@
                 {% endfor %}
             {% endif %}
         {% endwith %}
+
+        <!-- FORMULARIO DE FILTROS -->
+        <form method="GET" class="card shadow-sm mb-4 p-3 bg-light">
+            <div class="row g-3 align-items-end">
+                
+                <div class="col-md-5">
+                    <label for="categoriaFiltro" class="form-label small fw-bold text-muted">Filtrar por Categoría</label>
+                    <select class="form-select" id="categoriaFiltro" name="categoria_filtro">
+                        <option value="Todas" {% if not categoria_seleccionada or categoria_seleccionada == 'Todas' %}selected{% endif %}>Mostrar Todas</option>
+                        {% for cat in categorias %}
+                            <option value="{{ cat }}" {% if categoria_seleccionada == cat %}selected{% endif %}>{{ cat }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="col-md-5">
+                    <label for="tipoFiltro" class="form-label small fw-bold text-muted">Filtrar por Tipo de Recurso</label>
+                    <select class="form-select" id="tipoFiltro" name="tipo_filtro">
+                        <option value="Todos" {% if not tipo_seleccionado or tipo_seleccionado == 'Todos' %}selected{% endif %}>Mostrar Todos</option>
+                        {% for tipo_key, tipo_val in tipos %}
+                            <option value="{{ tipo_key }}" {% if tipo_seleccionado == tipo_key %}selected{% endif %}>{{ tipo_val }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="col-md-2 d-grid">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-filter"></i> Aplicar Filtros</button>
+                </div>
+            </div>
+        </form>
 
         <div class="card shadow-sm border-0">
             <div class="card-body p-0">

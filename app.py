@@ -233,28 +233,47 @@ def admin_dashboard():
                            user_name=session.get('user_name'),
                            today=today)
 
-# RUTA INVENTARIO (CORREGIDA PARA FILTRAR EN PANTALLA)
+# RUTA INVENTARIO (ACTUALIZADA CON FILTROS DE CATEGORÍA Y TIPO)
 @app.route('/admin/inventario')
 def inventario():
     if 'loggedin' not in session: return redirect(url_for('admin_login'))
     
-    filtro_categoria = request.args.get('categoria')
+    # 1. Obtener filtros de la URL
+    categoria_filtro = request.args.get('categoria_filtro')
+    tipo_filtro = request.args.get('tipo_filtro')
+
+    # Base de la consulta
+    consulta = Recurso.query 
     
-    query = Recurso.query
-    if filtro_categoria and filtro_categoria != 'Todas':
-        # Aplicar filtro a la consulta de recursos
-        query = query.filter_by(categoria=filtro_categoria)
-        
-    recursos = query.all()
+    # 2. Aplicar filtro de CATEGORÍA
+    if categoria_filtro and categoria_filtro != 'Todas':
+        consulta = consulta.filter_by(categoria=categoria_filtro)
     
-    # Lista única de categorías para el menú de impresión/filtro
-    todas_categorias = Recurso.query.all()
-    categorias_existentes = sorted(list(set([r.categoria for r in todas_categorias if r.categoria])))
+    # 3. Aplicar filtro de TIPO DE RECURSO
+    if tipo_filtro and tipo_filtro != 'Todos':
+        consulta = consulta.filter_by(tipo_recurso=tipo_filtro)
+    
+    # Ejecutar la consulta
+    recursos = consulta.all()
+
+    # Datos para los Dropdowns (Necesarios para la plantilla HTML)
+    categorias_existentes = sorted(list(set([r.categoria for r in Recurso.query.all() if r.categoria])))
+    
+    # Tipos de recurso fijos para el dropdown (deben coincidir con los de nuevo_recurso)
+    tipos_existentes = [
+        ('fisico', 'Libro Físico'), 
+        ('pdf', 'PDF Digital'), 
+        ('audio', 'Audiocuento'), 
+        ('bio', 'Biografía'),
+        ('efemeride', 'Efeméride')
+    ]
     
     return render_template('admin/inventario.html', 
                            recursos=recursos, 
-                           categorias=categorias_existentes, 
-                           filtro_activo=filtro_categoria,
+                           categorias=categorias_existentes,
+                           tipos=tipos_existentes, # Nuevo: Tipos de recurso
+                           categoria_seleccionada=categoria_filtro, # Nuevo: Categoría seleccionada
+                           tipo_seleccionado=tipo_filtro, # Nuevo: Tipo seleccionado
                            user_name=session.get('user_name'))
 
 # RUTA DE SUBIDA (MODIFICADA PARA USAR IDRIVE E2)
