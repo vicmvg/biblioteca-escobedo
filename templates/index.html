@@ -121,6 +121,23 @@
             color: black;
         }
 
+        /* Estilos específicos para efemérides */
+        .efemeride-img-container {
+            height: 100%;
+            min-height: 200px;
+            overflow: hidden;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .efemeride-img-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
     </style>
 </head>
 <body>
@@ -302,7 +319,7 @@
                 {% for bio in bios %}
                 <div class="col-md-3">
                     <div class="card resource-card h-100 border-info">
-                        {% if bio.ruta_miniatura %}
+                        {% if bio.ruta_miniatura or bio.ruta_archivo_e2 %}
                             <div class="card-img-top" style="height: 180px; overflow: hidden;">
                                 <img src="{{ url_for('ver_portada', recurso_id=bio.id_recurso) }}" class="img-fluid" alt="{{ bio.titulo }}" style="object-fit: cover; width: 100%; height: 100%;">
                             </div>
@@ -332,7 +349,7 @@
 
         <!-- SECCIÓN: EFEMÉRIDES -->
         {% if efemerides %}
-        <div id="efemerides" class="mb-5">
+        <div id="efemerides" class="mb-5 pt-5">
             <div class="d-flex align-items-center mb-4 ps-2">
                 <div class="bg-warning rounded-circle p-2 me-3 text-dark shadow"><i class="bi bi-calendar-event"></i></div>
                 <h3 class="fw-bold m-0 text-dark">Efemérides del Mes</h3>
@@ -342,27 +359,33 @@
                 <div class="col-md-6">
                     <div class="card resource-card h-100 border-warning">
                         <div class="row g-0 h-100">
-                            {% if efe.ruta_miniatura %}
-                                <div class="col-4" style="overflow: hidden;">
-                                    <img src="{{ url_for('ver_portada', recurso_id=efe.id_recurso) }}" class="img-fluid" alt="{{ efe.titulo }}" style="object-fit: cover; width: 100%; height: 100%;">
-                                </div>
-                            {% else %}
-                                <div class="col-4 bg-gradient-efemeride d-flex align-items-center justify-content-center text-white display-4">
-                                    <i class="bi bi-calendar-check"></i>
-                                </div>
-                            {% endif %}
+                            <div class="col-4">
+                                {% if efe.ruta_miniatura or efe.ruta_archivo_e2 %}
+                                    <div class="efemeride-img-container">
+                                        <img src="{{ url_for('ver_portada', recurso_id=efe.id_recurso) }}" alt="{{ efe.titulo }}">
+                                    </div>
+                                {% else %}
+                                    <div class="efemeride-img-container bg-gradient-efemeride text-white">
+                                        <i class="bi bi-calendar-check display-4"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
                             <div class="col-8">
-                                <div class="card-body">
+                                <div class="card-body d-flex flex-column h-100">
                                     <h5 class="card-title">{{ efe.titulo }}</h5>
-                                    <p class="text-muted small mb-2">{{ efe.descripcion[:80] }}...</p>
+                                    <p class="text-muted small mb-2 flex-grow-1">
+                                        {% if efe.descripcion %}
+                                            {{ efe.descripcion[:100] }}{% if efe.descripcion|length > 100 %}...{% endif %}
+                                        {% else %}
+                                            Sin descripción disponible.
+                                        {% endif %}
+                                    </p>
                                     
-                                    {% if efe.ruta_archivo_e2 %}
-                                        <a href="{{ url_for('ver_recurso', recurso_id=efe.id_recurso) }}" class="btn btn-sm btn-outline-warning text-dark fw-bold mt-2">
+                                    <div class="mt-auto">
+                                        <a href="{{ url_for('ver_recurso', recurso_id=efe.id_recurso) }}" class="btn btn-sm btn-outline-warning text-dark fw-bold">
                                             <i class="bi bi-eye"></i> Ver Detalles
                                         </a>
-                                    {% else %}
-                                        <button class="btn btn-sm btn-secondary mt-2" disabled>Sin Imagen</button>
-                                    {% endif %}
+                                    </div>
                                 </div>
                             </div>
                         </div>

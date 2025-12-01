@@ -6,12 +6,47 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
     <style>
-        body { background-color: #f4f7f6; font-family: 'Segoe UI', sans-serif; }
-        .detail-card { border-radius: 20px; overflow: hidden; box-shadow: 0 15px 30px rgba(0,0,0,0.1); background: white; }
-        .img-container { background: #eee; min-height: 400px; display: flex; align-items: center; justify-content: center; }
-        .img-container img { max-width: 100%; height: auto; object-fit: contain; max-height: 500px; }
-        .content-container { padding: 40px; }
-        .back-btn { position: absolute; top: 20px; left: 20px; z-index: 10; }
+        body { 
+            background-color: #f4f7f6; 
+            font-family: 'Segoe UI', sans-serif; 
+        }
+        .detail-card { 
+            border-radius: 20px; 
+            overflow: hidden; 
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1); 
+            background: white; 
+        }
+        .img-container { 
+            background: #eee; 
+            min-height: 400px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            overflow: hidden;
+        }
+        .img-container img { 
+            max-width: 100%; 
+            height: auto; 
+            object-fit: contain; 
+            max-height: 500px; 
+        }
+        .img-container.no-image {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .content-container { 
+            padding: 40px; 
+        }
+        .back-btn { 
+            position: absolute; 
+            top: 20px; 
+            left: 20px; 
+            z-index: 10; 
+        }
+        .badge-type {
+            font-size: 0.9rem;
+            padding: 8px 16px;
+            border-radius: 50px;
+        }
     </style>
 </head>
 <body>
@@ -25,26 +60,71 @@
             <div class="col-lg-10">
                 <div class="card detail-card border-0">
                     <div class="row g-0">
-                        <div class="col-md-5 img-container">
+                        <div class="col-md-5">
                             {% if recurso.ruta_miniatura or recurso.ruta_archivo_e2 %}
-                                <img src="{{ url_for('ver_portada', recurso_id=recurso.id_recurso) }}" class="img-fluid rounded shadow" alt="Portada">
+                                <div class="img-container">
+                                    <img src="{{ url_for('ver_portada', recurso_id=recurso.id_recurso) }}" class="img-fluid rounded shadow" alt="Portada de {{ recurso.titulo }}">
+                                </div>
                             {% else %}
-                                <div class="text-center text-muted">
-                                    <i class="bi bi-image fs-1"></i><p>Sin imagen</p>
+                                <div class="img-container no-image text-center text-white">
+                                    <div>
+                                        <i class="bi bi-image fs-1 d-block mb-3"></i>
+                                        <p class="fw-bold">Sin imagen disponible</p>
+                                    </div>
                                 </div>
                             {% endif %}
                         </div>
                         
                         <div class="col-md-7 content-container">
-                            <span class="badge bg-primary mb-2 text-uppercase">{{ recurso.tipo_recurso }}</span>
+                            <span class="badge bg-primary mb-3 text-uppercase badge-type">{{ recurso.tipo_recurso }}</span>
                             <h1 class="fw-bold mb-4 text-dark">{{ recurso.titulo }}</h1>
                             
-                            <div class="text-muted" style="white-space: pre-wrap; line-height: 1.8;">
-                                {{ recurso.descripcion }}
+                            {% if recurso.autor %}
+                            <div class="mb-3">
+                                <span class="text-muted"><i class="bi bi-person-fill me-2"></i><strong>Autor:</strong></span>
+                                <span class="text-dark">{{ recurso.autor }}</span>
+                            </div>
+                            {% endif %}
+
+                            {% if recurso.categoria %}
+                            <div class="mb-3">
+                                <span class="text-muted"><i class="bi bi-tag-fill me-2"></i><strong>Categoría:</strong></span>
+                                <span class="badge bg-light text-dark border">{{ recurso.categoria }}</span>
+                            </div>
+                            {% endif %}
+
+                            <hr class="my-4">
+
+                            {% if recurso.descripcion %}
+                            <div class="mb-4">
+                                <h5 class="fw-bold text-secondary mb-3"><i class="bi bi-info-circle-fill me-2"></i>Descripción</h5>
+                                <div class="text-muted" style="white-space: pre-wrap; line-height: 1.8;">
+                                    {{ recurso.descripcion }}
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <hr class="my-4">
+
+                            <div class="d-grid gap-2">
+                                {% if recurso.tipo_recurso == 'PDF' and recurso.ruta_archivo %}
+                                    <a href="{{ url_for('ver_archivo_privado', recurso_id=recurso.id_recurso) }}" target="_blank" class="btn btn-danger btn-lg rounded-pill fw-bold">
+                                        <i class="bi bi-file-pdf-fill me-2"></i> Abrir PDF
+                                    </a>
+                                {% elif recurso.tipo_recurso == 'Audio' and recurso.ruta_archivo %}
+                                    <div class="bg-light p-3 rounded-3">
+                                        <audio controls class="w-100">
+                                            <source src="{{ url_for('ver_archivo_privado', recurso_id=recurso.id_recurso) }}" type="audio/mpeg">
+                                            Tu navegador no soporta audio.
+                                        </audio>
+                                    </div>
+                                {% endif %}
                             </div>
 
                             <hr class="my-4">
-                            <p class="small text-muted mb-0">Biblioteca Digital "Mariano Escobedo"</p>
+                            <p class="small text-muted mb-0 text-center">
+                                <i class="bi bi-building me-2"></i>Biblioteca Digital "Mariano Escobedo"
+                            </p>
                         </div>
                     </div>
                 </div>
