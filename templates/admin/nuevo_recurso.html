@@ -76,11 +76,13 @@
                             <div class="mb-4">
                                 <label class="form-label fw-bold">¿Qué vas a subir?</label>
                                 <select class="form-select form-select-lg border-primary" name="tipo" id="tipoSelect" onchange="actualizarFormulario()">
+                                    <option value="" selected disabled>Selecciona...</option>
                                     <option value="pdf">📚 Libro Virtual (PDF)</option>
                                     <option value="audio">🎧 Audiocuento (MP3)</option>
                                     <option value="fisico">📖 Libro Físico (Estantería)</option>
                                     <option value="bio">👤 Biografía (Historia)</option>
                                     <option value="efemeride">📅 Efeméride (Evento)</option>
+                                    <option value="video">🎬 Video (YouTube)</option>
                                 </select>
                             </div>
 
@@ -137,11 +139,24 @@
                         <div class="card-header bg-primary text-white"><h5 class="mb-0" id="headerArchivo">Archivo Principal</h5></div>
                         <div class="card-body">
                             <div class="upload-zone mb-3" id="uploadZone">
-                                <input type="file" name="archivo_digital" id="fileInput" required>
+                                <input type="file" name="archivo_digital" id="fileInput">
                                 <i class="bi bi-cloud-upload fs-1 text-primary"></i>
                                 <h5 class="mt-2" id="textoSubida">Subir PDF o Audio</h5>
                                 <p class="text-primary fw-bold mt-2" id="fileNameDisplay"></p>
                             </div>
+                            
+                            <!-- Campo para Archivo Digital -->
+                            <div class="mb-3" id="campoArchivo">
+                                <label class="form-label fw-bold text-primary">Archivo Digital (PDF/Audio)</label>
+                                <input class="form-control" type="file" name="archivo_digital" id="inputArchivo">
+                            </div>
+
+                            <!-- Campo para URL de YouTube (oculto por defecto) -->
+                            <div class="mb-3 d-none" id="campoYoutube">
+                                <label class="form-label fw-bold text-danger"><i class="bi bi-youtube"></i> Link del Video (YouTube)</label>
+                                <input class="form-control" type="url" name="url_youtube" placeholder="https://www.youtube.com/watch?v=...">
+                            </div>
+                            
                             <button type="submit" class="btn btn-success w-100 fw-bold py-2">
                                 <i class="bi bi-check-lg"></i> Guardar Recurso
                             </button>
@@ -162,6 +177,8 @@
         const fileNameDisplayMiniatura = document.getElementById('fileNameDisplayMiniatura');
         const miniaturaRequerido = document.getElementById('miniaturaRequerido');
         const textMiniatura = document.getElementById('textMiniatura');
+        const campoArchivo = document.getElementById('campoArchivo');
+        const campoYoutube = document.getElementById('campoYoutube');
 
         fileInput.addEventListener('change', function() {
             if(this.files && this.files.length > 0) fileNameDisplay.textContent = this.files[0].name;
@@ -192,6 +209,19 @@
                 document.getElementById('headerArchivo').textContent = "Recurso Físico";
                 miniaturaRequerido.textContent = "(Recomendado)";
                 textMiniatura.textContent = "Sube la portada del libro físico para que se vea en el catálogo.";
+                campoArchivo.classList.add('d-none');
+                campoYoutube.classList.add('d-none');
+                
+            } else if (tipo === 'video') {
+                // Video de YouTube
+                uploadZone.style.display = 'none';
+                fileInput.removeAttribute('required');
+                campoAutor.style.display = 'block';
+                document.getElementById('headerArchivo').textContent = "Video de YouTube";
+                miniaturaRequerido.textContent = "(Recomendado)";
+                textMiniatura.textContent = "Sube una miniatura para el video. Esto será la portada que verán los estudiantes.";
+                campoArchivo.classList.add('d-none');
+                campoYoutube.classList.remove('d-none');
                 
             } else if (tipo === 'bio') {
                 // Biografía
@@ -203,6 +233,8 @@
                 document.getElementById('textoSubida').textContent = "Subir Imagen/Cartel del Personaje";
                 miniaturaRequerido.textContent = "(Opcional)";
                 textMiniatura.textContent = "Puedes subir una miniatura diferente o se usará la imagen principal.";
+                campoArchivo.classList.remove('d-none');
+                campoYoutube.classList.add('d-none');
                 
             } else if (tipo === 'efemeride') {
                 // ✅ EFEMÉRIDE - AHORA PERMITE MINIATURA
@@ -214,6 +246,8 @@
                 document.getElementById('textoSubida').textContent = "Subir Imagen de la Efeméride";
                 miniaturaRequerido.textContent = "(Recomendado)";
                 textMiniatura.textContent = "Sube una miniatura que aparecerá en el inicio. Puede ser diferente a la imagen principal.";
+                campoArchivo.classList.remove('d-none');
+                campoYoutube.classList.add('d-none');
                 
             } else {
                 // PDF o Audio
@@ -225,8 +259,17 @@
                 fileInput.accept = (tipo === 'pdf' ? ".pdf" : "audio/*");
                 miniaturaRequerido.textContent = "(Recomendado)";
                 textMiniatura.textContent = "Sube una portada para que el recurso se vea atractivo.";
+                campoArchivo.classList.remove('d-none');
+                campoYoutube.classList.add('d-none');
             }
         }
+
+        // Script para cambiar entre Archivo y YouTube
+        const selectTipo = document.getElementById('tipoSelect');
+
+        selectTipo.addEventListener('change', function() {
+            actualizarFormulario();
+        });
 
         // Inicializar el formulario al cargar la página
         actualizarFormulario();

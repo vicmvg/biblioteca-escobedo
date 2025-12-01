@@ -39,8 +39,71 @@
                             <span class="badge bg-primary mb-2 text-uppercase">{{ recurso.tipo_recurso }}</span>
                             <h1 class="fw-bold mb-4 text-dark">{{ recurso.titulo }}</h1>
                             
+                            <!-- INFORMACIÓN ADICIONAL -->
+                            <div class="mb-4">
+                                <p class="mb-2"><strong><i class="bi bi-person-fill me-2"></i>Autor:</strong> {{ recurso.autor }}</p>
+                                <p class="mb-2"><strong><i class="bi bi-tags-fill me-2"></i>Categoría:</strong> {{ recurso.categoria }}</p>
+                                
+                                {% if recurso.tipo_recurso == 'fisico' %}
+                                <p class="mb-2"><strong><i class="bi bi-box-fill me-2"></i>Disponibilidad:</strong> 
+                                    {% if recurso.ejemplares_disponibles > 0 %}
+                                        <span class="badge bg-success">{{ recurso.ejemplares_disponibles }} ejemplares disponibles</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Agotado temporalmente</span>
+                                    {% endif %}
+                                </p>
+                                {% endif %}
+                            </div>
+
                             <div class="text-muted" style="white-space: pre-wrap; line-height: 1.8;">
                                 {{ recurso.descripcion }}
+                            </div>
+
+                            <!-- REPRODUCTOR DE VIDEO -->
+                            {% if recurso.tipo_recurso == 'video' and recurso.ruta_archivo_e2 %}
+                                <div class="mt-4">
+                                    <h5 class="fw-bold mb-3">Ver Video:</h5>
+                                    <div class="ratio ratio-16x9 shadow rounded overflow-hidden">
+                                        <iframe 
+                                            src="{{ recurso.ruta_archivo_e2 | youtube_embed }}" 
+                                            title="YouTube video" 
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                            allowfullscreen>
+                                        </iframe>
+                                    </div>
+                                    <div class="text-center mt-2">
+                                        <small class="text-muted">Reproduciendo desde YouTube</small>
+                                    </div>
+                                    <div class="mt-3 text-center">
+                                        <a href="{{ recurso.ruta_archivo_e2 }}" target="_blank" class="btn btn-outline-danger btn-sm">
+                                            <i class="bi bi-youtube"></i> Ver en YouTube.com
+                                        </a>
+                                    </div>
+                                </div>
+                            {% endif %}
+
+                            <!-- BOTONES DE ACCIÓN SEGÚN TIPO -->
+                            <div class="mt-4">
+                                {% if recurso.tipo_recurso == 'pdf' and recurso.ruta_archivo_e2 %}
+                                    <a href="{{ url_for('ver_archivo_privado', recurso_id=recurso.id_recurso) }}" target="_blank" class="btn btn-danger btn-lg rounded-pill">
+                                        <i class="bi bi-file-pdf-fill"></i> Leer PDF
+                                    </a>
+                                {% elif recurso.tipo_recurso == 'audio' and recurso.ruta_archivo_e2 %}
+                                    <div class="bg-light p-3 rounded-3">
+                                        <audio controls class="w-100">
+                                            <source src="{{ url_for('ver_archivo_privado', recurso_id=recurso.id_recurso) }}" type="audio/mpeg">
+                                            Tu navegador no soporta audio.
+                                        </audio>
+                                    </div>
+                                {% elif recurso.tipo_recurso == 'fisico' %}
+                                    <div class="alert alert-info">
+                                        <i class="bi bi-info-circle-fill me-2"></i>Este recurso está disponible en formato físico. Acude a la biblioteca para solicitarlo.
+                                    </div>
+                                {% elif recurso.tipo_recurso in ['bio', 'efemeride'] %}
+                                    <div class="alert alert-success">
+                                        <i class="bi bi-book-half me-2"></i>Contenido disponible para lectura en esta página.
+                                    </div>
+                                {% endif %}
                             </div>
 
                             <hr class="my-4">

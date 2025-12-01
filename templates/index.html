@@ -121,6 +121,25 @@
             color: black;
         }
 
+        /* Estilos para el reproductor de video */
+        .video-container {
+            position: relative;
+            width: 100%;
+            height: 0;
+            padding-bottom: 56.25%; /* Relación 16:9 */
+            overflow: hidden;
+            border-radius: 15px 15px 0 0;
+        }
+        
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+
     </style>
 </head>
 <body>
@@ -321,6 +340,49 @@
                             <a href="{{ url_for('ver_recurso', recurso_id=bio.id_recurso) }}" class="btn btn-info text-white btn-pill fw-bold w-100 mt-2 shadow-sm">
                                 <i class="bi bi-book-half"></i> Leer Biografía
                             </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- SECCIÓN: VIDEOS (NUEVA SECCIÓN - ACTUALIZADA) -->
+        {% if videos %}
+        <div id="videos" class="mb-5 pt-4">
+            <div class="d-flex align-items-center mb-4 ps-2">
+                <div class="bg-danger rounded-circle p-2 me-3 text-white shadow"><i class="bi bi-play-btn-fill"></i></div>
+                <h3 class="fw-bold m-0 text-dark">Recursos Virtuales (Videos)</h3>
+            </div>
+            
+            <div class="row g-4">
+                {% for video in videos %}
+                <div class="col-md-3">
+                    <div class="card resource-card h-100 border-0 shadow-sm">
+                        <!-- REPRODUCTOR DE VIDEO INCORPORADO -->
+                        <div class="video-container">
+                            <iframe 
+                                src="{{ video.ruta_archivo_e2|youtube_embed }}" 
+                                title="{{ video.titulo }}" 
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                allowfullscreen>
+                            </iframe>
+                        </div>
+
+                        <div class="card-body">
+                            <h5 class="card-title text-truncate">{{ video.titulo }}</h5>
+                            <p class="text-muted small mb-2">{{ video.autor }}</p>
+                            <p class="small text-secondary" style="height: 40px; overflow: hidden;">{{ video.descripcion[:60] if video.descripcion else 'Sin descripción' }}...</p>
+                            
+                            <div class="d-flex justify-content-between mt-3">
+                                <a href="{{ video.ruta_archivo_e2 }}" target="_blank" class="btn btn-outline-danger btn-sm rounded-pill fw-bold">
+                                    <i class="bi bi-youtube"></i> Ver en YouTube
+                                </a>
+                                <a href="{{ url_for('ver_recurso', recurso_id=video.id_recurso) }}" class="btn btn-outline-secondary btn-sm rounded-pill">
+                                    <i class="bi bi-info-circle"></i> Detalles
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>

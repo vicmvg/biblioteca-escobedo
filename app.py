@@ -14,6 +14,25 @@ BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 app = Flask(__name__)
 app.secret_key = os.urandom(24) 
 
+# --- FILTRO PARA YOUTUBE ---
+@app.template_filter('youtube_embed')
+def youtube_embed_filter(url):
+    """Convierte links de YouTube normales a formato embed."""
+    if not url: return ""
+    video_id = ""
+    
+    # Caso 1: Link normal (youtube.com/watch?v=ID)
+    if "youtube.com/watch?v=" in url:
+        video_id = url.split("v=")[1].split("&")[0]
+    # Caso 2: Link corto (youtu.be/ID)
+    elif "youtu.be/" in url:
+        video_id = url.split("youtu.be/")[1].split("?")[0]
+        
+    if video_id:
+        return f"https://www.youtube.com/embed/{video_id}"
+    
+    return url # Si no es de youtube, regresa el link original
+
 # --- CONFIGURACIÓN INTELIGENTE DE BASE DE DATOS ---
 # Si hay una base de datos en la nube (Render), usa esa. Si no, usa la local.
 database_url = os.environ.get('DATABASE_URL', 'sqlite:///' + os.path.join(BASE_DIR, 'biblioteca.db'))
@@ -133,17 +152,19 @@ def inicio():
     fisicos = [r for r in todos_recursos if r.tipo_recurso == 'fisico'][:4]
     bios = [r for r in todos_recursos if r.tipo_recurso == 'bio'][:4]
     efemerides = [r for r in todos_recursos if r.tipo_recurso == 'efemeride'][:4]
+    # --- ¡NUEVA LISTA! ---
+    videos = [r for r in todos_recursos if r.tipo_recurso == 'video'][:4]
 
     # Si hay búsqueda activa, mostramos todos los resultados, si no, limitamos a 4
     if busqueda:
          return render_template('index.html', 
                            pdfs=pdfs, audios=audios, fisicos=fisicos, 
-                           bios=bios, efemerides=efemerides,
+                           bios=bios, efemerides=efemerides, videos=videos, # <-- Agrega videos aquí
                            busqueda_activa=busqueda)
     else:
         return render_template('index.html', 
                             pdfs=pdfs, audios=audios, fisicos=fisicos, 
-                            bios=bios, efemerides=efemerides,
+                            bios=bios, efemerides=efemerides, videos=videos, # <-- Y aquí también
                             busqueda_activa=None)
 
 
@@ -268,7 +289,8 @@ def inventario():
         ('pdf', 'PDF Digital'), 
         ('audio', 'Audiocuento'), 
         ('bio', 'Biografía'),
-        ('efemeride', 'Efeméride')
+        ('efemeride', 'Efeméride'),
+        ('video', 'Video (YouTube)') # <--- ¡NUEVO TIPO!
     ]
     
     return render_template('admin/inventario.html', 
@@ -300,33 +322,39 @@ def nuevo_recurso():
             ejemplares_input = request.form.get('ejemplares_total')
             ejemplares_total = int(ejemplares_input) if ejemplares_input and ejemplares_input.isdigit() else 0
             
-            # 1. SUBIR ARCHIVO PRINCIPAL A LA NUBE
-            archivo = request.files.get('archivo_digital')
-            ruta_final = None 
-            if archivo and archivo.filename != '':
-                nombre_seguro = secure_filename(archivo.filename)
-                nombre_archivo = f"{titulo[:10].replace(' ','_')}_{nombre_seguro}"
-                ruta_final = upload_to_e2(archivo, nombre_archivo) # Sube y guarda la clave
+            ruta_final = None # Aquí guardaremos el Link o la Ruta del archivo
             
-            # 2. SUBIR MINIATURA A LA NUBE (¡ESTO FALTABA!)
+            # --- LÓGICA HÍBRIDA ---
+            if tipo == 'video':
+                # Si es video, guardamos el LINK directamente
+                ruta_final = request.form.get('url_youtube')
+            else:
+                # Si es otro tipo, intentamos subir el archivo a la nube
+                archivo = request.files.get('archivo_digital')
+                if archivo and archivo.filename != '':
+                    nombre_seguro = secure_filename(archivo.filename)
+                    nombre_archivo = f"{titulo[:10].replace(' ','_')}_{nombre_seguro}"
+                    ruta_final = upload_to_e2(archivo, nombre_archivo)
+
+            # La miniatura SIEMPRE se sube (para que el video tenga portada bonita)
             miniatura = request.files.get('miniatura')
             ruta_miniatura_final = None
             if miniatura and miniatura.filename != '':
                 nombre_seguro_min = secure_filename(miniatura.filename)
                 nombre_miniatura = f"min_{titulo[:10].replace(' ','_')}_{nombre_seguro_min}"
-                ruta_miniatura_final = upload_to_e2(miniatura, nombre_miniatura) # Sube y guarda la clave
-            
+                ruta_miniatura_final = upload_to_e2(miniatura, nombre_miniatura)
+
             nuevo = Recurso(
                 titulo=titulo, autor=autor, tipo_recurso=tipo,
                 descripcion=descripcion, categoria=categoria,
                 ejemplares_total=ejemplares_total, 
                 ejemplares_disponibles=ejemplares_total, 
-                ruta_archivo_e2=ruta_final,
+                ruta_archivo_e2=ruta_final, # Aquí va el Link de YT o la ruta de IDrive
                 ruta_miniatura=ruta_miniatura_final # Guarda la clave de la miniatura
             )
             db.session.add(nuevo)
             db.session.commit()
-            flash(f"Recurso '{titulo}' subido correctamente.", 'success')
+            flash(f"Recurso '{titulo}' agregado correctamente.", 'success')
             return redirect(url_for('inventario'))
         
         except Exception as e:
@@ -365,7 +393,7 @@ def imprimir_inventario():
         titulo += f" (Cat: {categoria_filtro})"
     if tipo_filtro and tipo_filtro != 'Todos':
         # Mapeo de tipos para el título del PDF
-        tipos_map = {'fisico': 'Físico', 'pdf': 'PDF', 'audio': 'Audio', 'bio': 'Biografía', 'efemeride': 'Efeméride'}
+        tipos_map = {'fisico': 'Físico', 'pdf': 'PDF', 'audio': 'Audio', 'bio': 'Biografía', 'efemeride': 'Efeméride', 'video': 'Video'}
         titulo += f" (Tipo: {tipos_map.get(tipo_filtro, tipo_filtro)})"
     
     # Esto asume que tienes un archivo llamado imprimir_inventario.html para el PDF
