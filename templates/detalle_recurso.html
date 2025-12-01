@@ -102,17 +102,21 @@
                             <hr class="my-4">
 
                             <div class="d-grid gap-2">
-                                {% if recurso.tipo_recurso == 'PDF' and recurso.ruta_archivo %}
+                                {% if recurso.tipo_recurso == 'PDF' and recurso.ruta_archivo_e2 %}
                                     <a href="{{ url_for('ver_archivo_privado', recurso_id=recurso.id_recurso) }}" target="_blank" class="btn btn-danger btn-lg rounded-pill fw-bold">
                                         <i class="bi bi-file-pdf-fill me-2"></i> Abrir PDF
                                     </a>
-                                {% elif recurso.tipo_recurso == 'Audio' and recurso.ruta_archivo %}
+                                {% elif recurso.tipo_recurso == 'Audio' and recurso.ruta_archivo_e2 %}
                                     <div class="bg-light p-3 rounded-3">
                                         <audio controls class="w-100">
                                             <source src="{{ url_for('ver_archivo_privado', recurso_id=recurso.id_recurso) }}" type="audio/mpeg">
                                             Tu navegador no soporta audio.
                                         </audio>
                                     </div>
+                                {% elif recurso.tipo_recurso in ['bio', 'efemeride'] and recurso.ruta_archivo_e2 %}
+                                    <a href="{{ url_for('ver_archivo_privado', recurso_id=recurso.id_recurso) }}" target="_blank" class="btn btn-info btn-lg rounded-pill fw-bold">
+                                        <i class="bi bi-file-earmark-text-fill me-2"></i> Ver Documento
+                                    </a>
                                 {% endif %}
                             </div>
 

@@ -498,7 +498,7 @@ def devolver_libro(prestamo_id):
     if not prestamo or prestamo.estado != 'Activo':
         flash('Error: El préstamo no es válido o ya fue devuelto.', 'danger')
         return redirect(url_for('gestion_prestamos'))
-
+ 
     try:
         # 1. Marcar el préstamo como devuelto
         prestamo.fecha_devolucion_real = date.today()
