@@ -115,6 +115,19 @@ class Prestamo(db.Model):
     fecha_devolucion_real = db.Column(db.Date, nullable=True)
     estado = db.Column(db.String(15), default='Activo')
 
+# --- NUEVO MODELO AVANCE ---
+class Avance(db.Model):
+    __tablename__ = 'avances'
+    id_avance = db.Column(db.Integer, primary_key=True)
+    titulo = db.Column(db.String(255), nullable=False)
+    descripcion = db.Column(db.Text)
+    categoria = db.Column(db.String(100), nullable=False) # Ej: Planeación, Reporte, Evidencia
+    fecha_subida = db.Column(db.Date, default=date.today)
+
+    # Rutas para IDrive e2
+    ruta_archivo = db.Column(db.String(255), nullable=True) # El archivo (PDF, DOCX, ZIP)
+    ruta_imagen = db.Column(db.String(255), nullable=True)  # Foto de evidencia (opcional)
+
 # --- INICIALIZACIÓN ---
 def inicializar_bd():
     with app.app_context():
@@ -664,6 +677,107 @@ def ver_portada(recurso_id):
     except Exception as e:
         print(f"Error portada: {e}")
         return redirect("https://placehold.co/300x400/e0e0e0/666?text=Error")
+
+# --- EN app.py (Ruta para ver archivo de Avance) ---
+@app.route('/ver-avance-privado/<int:id_avance>')
+def ver_avance_privado(id_avance):
+    """Genera enlace temporal para ver archivos de Avance."""
+    avance = db.session.get(Avance, id_avance)
+    if not avance or not avance.ruta_archivo:
+        flash("Archivo no encontrado.", "danger")
+        return redirect(url_for('gestion_avances'))
+    
+    try:
+        s3 = boto3.client(
+            's3',
+            aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
+            aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'),
+            endpoint_url=os.environ.get('S3_ENDPOINT_URL')
+        )
+        
+        bucket_name = os.environ.get('S3_BUCKET_NAME')
+        url_firmada = s3.generate_presigned_url(
+            'get_object',
+            Params={'Bucket': bucket_name, 'Key': avance.ruta_archivo},
+            ExpiresIn=3600
+        )
+        return redirect(url_firmada)
+    except Exception as e:
+        print(f"Error generando link firmado para avance: {e}")
+        flash("Error al acceder al archivo en la nube.", "danger")
+        return redirect(url_for('gestion_avances'))
+
+# --- NUEVAS RUTAS PARA AVANCES ---
+@app.route('/admin/avances', methods=['GET', 'POST'])
+def gestion_avances():
+    if 'loggedin' not in session: return redirect(url_for('admin_login'))
+
+    # Lógica para SUBIR nuevo avance
+    if request.method == 'POST':
+        try:
+            titulo = request.form.get('titulo')
+            categoria = request.form.get('categoria')
+            descripcion = request.form.get('descripcion')
+
+            # Subir Archivo Principal
+            archivo = request.files.get('archivo')
+            ruta_archivo_final = None
+            if archivo and archivo.filename != '':
+                nombre_seguro = secure_filename(archivo.filename)
+                nombre_final = f"avance_{titulo[:10].replace(' ','_')}_{nombre_seguro}"
+                ruta_archivo_final = upload_to_e2(archivo, nombre_final)
+
+            # Subir Imagen (Opcional)
+            imagen = request.files.get('imagen')
+            ruta_imagen_final = None
+            if imagen and imagen.filename != '':
+                nombre_seguro_img = secure_filename(imagen.filename)
+                nombre_img_final = f"evidencia_{titulo[:10].replace(' ','_')}_{nombre_seguro_img}"
+                ruta_imagen_final = upload_to_e2(imagen, nombre_img_final)
+            nuevo_avance = Avance(
+                titulo=titulo,
+                categoria=categoria,
+                descripcion=descripcion,
+                ruta_archivo=ruta_archivo_final,
+                ruta_imagen=ruta_imagen_final
+            )
+            db.session.add(nuevo_avance)
+            db.session.commit()
+            flash('Avance subido correctamente.', 'success')
+            return redirect(url_for('gestion_avances'))
+
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error subiendo avance: {e}")
+            flash('Error al guardar el avance.', 'danger')
+    # Lógica para MOSTRAR y FILTRAR
+    categoria_filtro = request.args.get('filtro_categoria')
+    query = Avance.query.order_by(Avance.fecha_subida.desc())
+
+    if categoria_filtro and categoria_filtro != 'Todas':
+        query = query.filter_by(categoria=categoria_filtro)
+
+    avances = query.all()
+
+    # Categorías predefinidas para el maestro
+    categorias = ['Planeación', 'Reporte de Lectura', 'Evidencia Fotográfica', 'Proyecto', 'Administrativo']
+
+    return render_template('admin/avances.html', 
+                           avances=avances, 
+                           categorias=categorias,
+                           filtro_actual=categoria_filtro,
+                           user_name=session.get('user_name'))
+
+# Ruta para ELIMINAR avance
+@app.route('/admin/eliminar-avance/<int:id_avance>', methods=['POST'])
+def eliminar_avance(id_avance):
+    if 'loggedin' not in session: return redirect(url_for('admin_login'))
+    avance = db.session.get(Avance, id_avance)
+    if avance:
+        db.session.delete(avance)
+        db.session.commit()
+        flash('Avance eliminado.', 'success')
+    return redirect(url_for('gestion_avances'))
 
 @app.route('/logout')
 def logout():

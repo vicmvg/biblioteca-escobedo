@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Avances de Biblioteca - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+    
+    <style>
+        :root { --primary-color: #004d99; --sidebar-width: 280px; }
+        body { background-color: #f8f9fa; font-family: 'Segoe UI', sans-serif; }
+        
+        /* Sidebar (Copiado de dashboard.html) */
+        .sidebar { width: var(--sidebar-width); height: 100vh; position: fixed; top: 0; left: 0; background-color: var(--primary-color); color: white; padding-top: 20px; z-index: 1000; }
+        .sidebar .nav-link { color: rgba(255,255,255,0.8); margin: 5px 15px; padding: 10px 20px; border-radius: 10px; }
+        .sidebar .nav-link:hover { background: white; color: var(--primary-color); }
+        
+        .main-content { margin-left: var(--sidebar-width); padding: 30px; }
+        
+        /* Menú móvil */
+        .mobile-nav { display: none; }
+        @media (max-width: 768px) {
+            .sidebar { display: none !important; }
+            .main-content { margin-left: 0 !important; padding: 15px !important; }
+            .mobile-nav { display: block !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-dark bg-primary mobile-nav shadow-sm mb-3">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold" href="#"><i class="bi bi-book-half"></i> Admin</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mobileMenu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse mt-2" id="mobileMenu">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('admin_dashboard') }}">Resumen</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('gestion_avances') }}">Avances</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('logout') }}">Salir</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <nav class="sidebar d-flex flex-column">
+        <div class="px-4 mb-4 text-center">
+            <i class="bi bi-book-half fs-2"></i>
+            <h5 class="fw-bold mt-2">Biblioteca</h5>
+        </div>
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('admin_dashboard') }}"><i class="bi bi-speedometer2 me-2"></i> Dashboard</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('inventario') }}"><i class="bi bi-collection me-2"></i> Inventario</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="{{ url_for('gestion_avances') }}"><i class="bi bi-folder-fill me-2"></i> Avances Docentes</a>
+            </li>
+            <li class="nav-item mt-auto">
+                <a class="nav-link text-warning" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-left me-2"></i> Cerrar Sesión</a>
+            </li>
+        </ul>
+    </nav>
+    
+    <main class="main-content">
+        <h2 class="fw-bold mb-4 text-primary"><i class="bi bi-folder-fill"></i> Avances de Biblioteca</h2>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 fw-bold text-secondary"><i class="bi bi-cloud-upload"></i> Nuevo Documento / Evidencia</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Título</label>
+                            <input type="text" name="titulo" class="form-control" required placeholder="Ej: Planeación Octubre">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Categoría</label>
+                            <select name="categoria" class="form-select" required>
+                                {% for cat in categorias %}
+                                    <option value="{{ cat }}">{{ cat }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label">Archivo (PDF/Word/Excel)</label>
+                            <input type="file" name="archivo" class="form-control" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Descripción (Opcional)</label>
+                            <textarea name="descripcion" class="form-control" rows="2" placeholder="Detalles extra..."></textarea>
+                        </div>
+                        <div class="col-12 text-end">
+                            <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Guardar Avance</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="fw-bold">Mis Documentos</h4>
+            
+            <form method="GET" class="d-flex">
+                <select name="filtro_categoria" class="form-select me-2" onchange="this.form.submit()">
+                    <option value="Todas">Todas las Categorías</option>
+                    {% for cat in categorias %}
+                        <option value="{{ cat }}" {% if filtro_actual == cat %}selected{% endif %}>{{ cat }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
+
+        <div class="row g-3">
+            {% for avance in avances %}
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="badge bg-info text-dark">{{ avance.categoria }}</span>
+                            <small class="text-muted">{{ avance.fecha_subida }}</small>
+                        </div>
+                        <h5 class="card-title fw-bold">{{ avance.titulo }}</h5>
+                        <p class="card-text text-secondary small">
+                            {{ avance.descripcion if avance.descripcion else "Sin descripción" }}
+                        </p>
+                    </div>
+                    <div class="card-footer bg-white border-top-0 d-flex justify-content-between">
+                        {% if avance.ruta_archivo %}
+                            <a href="{{ url_for('ver_avance_privado', id_avance=avance.id_avance) }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i> Ver Archivo
+                            </a>
+                        {% else %}
+                            <button disabled class="btn btn-sm btn-light">Sin archivo</button>
+                        {% endif %}
+                        
+                        <form action="{{ url_for('eliminar_avance', id_avance=avance.id_avance) }}" method="POST" onsubmit="return confirm('¿Borrar este documento?');">
+                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar"><i class="bi bi-trash"></i></button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="col-12 text-center text-muted py-5">
+                <i class="bi bi-folder2-open display-1"></i>
+                <p>No hay avances subidos en esta categoría.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </main>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
