@@ -498,7 +498,7 @@ def devolver_libro(prestamo_id):
     if not prestamo or prestamo.estado != 'Activo':
         flash('Error: El préstamo no es válido o ya fue devuelto.', 'danger')
         return redirect(url_for('gestion_prestamos'))
- 
+
     try:
         # 1. Marcar el préstamo como devuelto
         prestamo.fecha_devolucion_real = date.today()
@@ -633,29 +633,6 @@ def ver_portada(recurso_id):
     except Exception as e:
         print(f"Error portada: {e}")
         return redirect("https://via.placeholder.com/300x400?text=Error")
-
-# --- RUTA DE EMERGENCIA PARA RESETEAR LA BASE DE DATOS ---
-@app.route('/admin/reset-db-urgente')
-def reset_db_urgente():
-    if 'loggedin' not in session: return "Error: Inicia sesión como administrador primero."
-
-    # 1. Borrar tablas viejas (que no tienen la columna de miniatura)
-    db.drop_all()
-
-    # 2. Crear tablas nuevas (QUE SÍ TIENEN la columna)
-    db.create_all()
-
-    # 3. Restaurar al administrador
-    hashed = generate_password_hash('123', method='pbkdf2:sha256')
-    admin = Usuario(nombre='Maestra Bibliotecaria', 
-                    email='admin@escobedo.edu', 
-                    password_hash=hashed, 
-                    rol='admin',
-                    token_recuperacion='ME2025')
-    db.session.add(admin)
-    db.session.commit()
-
-    return "¡Base de Datos Actualizada! Ahora sí se guardarán las imágenes."
 
 @app.route('/logout')
 def logout():
