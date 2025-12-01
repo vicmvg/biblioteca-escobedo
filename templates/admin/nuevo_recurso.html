@@ -16,27 +16,12 @@
         .upload-zone { border: 2px dashed #004d99; border-radius: 10px; padding: 40px 20px; text-align: center; background-color: #f0f8ff; position: relative; cursor: pointer;}
 
         /* --- ESTILOS PARA MÓVIL (RESPONSIVE) --- */
-        /* Cuando la pantalla sea menor a 768px (Tablets y Celulares) */
         @media (max-width: 768px) {
-            /* 1. Ocultar la barra lateral fija */
-            .sidebar { 
-                display: none !important; 
-            }
-            
-            /* 2. Quitar el margen izquierdo del contenido */
-            .main-content { 
-                margin-left: 0 !important; 
-                padding: 15px !important; 
-            }
-            /* 3. Mostrar el menú de navegación móvil */
-            .mobile-nav {
-                display: block !important;
-            }
+            .sidebar { display: none !important; }
+            .main-content { margin-left: 0 !important; padding: 15px !important; }
+            .mobile-nav { display: block !important; }
         }
-        /* En computadora, el menú móvil está oculto */
-        .mobile-nav {
-            display: none;
-        }
+        .mobile-nav { display: none; }
     </style>
 </head>
 <body>
@@ -93,7 +78,8 @@
                                 <select class="form-select form-select-lg border-primary" name="tipo" id="tipoSelect" onchange="actualizarFormulario()">
                                     <option value="pdf">📚 Libro Virtual (PDF)</option>
                                     <option value="audio">🎧 Audiocuento (MP3)</option>
-                                    <option value="fisico">📖 Libro Físico (Estantería)</option> <option value="bio">👤 Biografía (Historia)</option>
+                                    <option value="fisico">📖 Libro Físico (Estantería)</option>
+                                    <option value="bio">👤 Biografía (Historia)</option>
                                     <option value="efemeride">📅 Efeméride (Evento)</option>
                                 </select>
                             </div>
@@ -131,10 +117,11 @@
                         </div>
                     </div>
 
-                    <div class="card shadow-sm mb-4" id="cardMiniatura" style="display: none;">
-                        <div class="card-header bg-white"><h5 class="mb-0 text-info"><i class="bi bi-image"></i> Miniatura / Portada (Opcional)</h5></div>
+                    <!-- ✅ TARJETA DE MINIATURA SIEMPRE VISIBLE -->
+                    <div class="card shadow-sm mb-4" id="cardMiniatura">
+                        <div class="card-header bg-white"><h5 class="mb-0 text-info"><i class="bi bi-image"></i> Miniatura / Portada <span id="miniaturaRequerido">(Opcional)</span></h5></div>
                         <div class="card-body">
-                            <p class="text-muted small">Sube una imagen cuadrada (JPG, PNG) para la portada. Si no subes, se usará una imagen por defecto.</p>
+                            <p class="text-muted small" id="textMiniatura">Sube una imagen cuadrada (JPG, PNG) para la portada. Si no subes, se usará una imagen por defecto.</p>
                             <div class="upload-zone border-info" id="uploadZoneMiniatura">
                                 <input type="file" name="miniatura" id="miniaturaInput" accept="image/*">
                                 <i class="bi bi-image fs-1 text-info"></i>
@@ -171,16 +158,23 @@
         const campoStock = document.getElementById('campoStock');
         const campoAutor = document.getElementById('campoAutor');
         const uploadZone = document.getElementById('uploadZone');
+        const miniaturaInput = document.getElementById('miniaturaInput');
+        const fileNameDisplayMiniatura = document.getElementById('fileNameDisplayMiniatura');
+        const miniaturaRequerido = document.getElementById('miniaturaRequerido');
+        const textMiniatura = document.getElementById('textMiniatura');
 
         fileInput.addEventListener('change', function() {
             if(this.files && this.files.length > 0) fileNameDisplay.textContent = this.files[0].name;
         });
 
-        // LÓGICA DINÁMICA
+        miniaturaInput.addEventListener('change', function() {
+            if(this.files && this.files.length > 0) fileNameDisplayMiniatura.textContent = this.files[0].name;
+        });
+
+        // LÓGICA DINÁMICA CORREGIDA
         function actualizarFormulario() {
             const tipo = document.getElementById('tipoSelect').value;
             const labelDesc = document.getElementById('labelDesc');
-            const cardMiniatura = document.getElementById('cardMiniatura'); // <-- NUEVO
 
             // 1. Mostrar/Ocultar Stock
             if (tipo === 'fisico') {
@@ -189,45 +183,50 @@
                 campoStock.style.display = 'none';
             }
 
-            // 2. Mostrar/Ocultar y configurar Archivo
+            // 2. Configurar campos según el tipo
             if (tipo === 'fisico') {
+                // Libro físico
                 uploadZone.style.display = 'none';
-                fileInput.removeAttribute('required'); // No necesita archivo
+                fileInput.removeAttribute('required');
                 campoAutor.style.display = 'block';
                 document.getElementById('headerArchivo').textContent = "Recurso Físico";
-            } else if (tipo === 'bio' || tipo === 'efemeride') {
+                miniaturaRequerido.textContent = "(Recomendado)";
+                textMiniatura.textContent = "Sube la portada del libro físico para que se vea en el catálogo.";
+                
+            } else if (tipo === 'bio') {
+                // Biografía
                 uploadZone.style.display = 'block';
                 fileInput.setAttribute('required', 'required');
                 fileInput.accept = "image/*, application/pdf";
-                campoAutor.style.display = 'none'; // Biografía/Efeméride no requieren autor o es el mismo título
+                campoAutor.style.display = 'none';
                 document.getElementById('headerArchivo').textContent = "Imagen Principal o Documento";
-                document.getElementById('textoSubida').textContent = "Subir Imagen/Cartel (Recomendado)";
-            } else { // PDF o Audio
+                document.getElementById('textoSubida').textContent = "Subir Imagen/Cartel del Personaje";
+                miniaturaRequerido.textContent = "(Opcional)";
+                textMiniatura.textContent = "Puedes subir una miniatura diferente o se usará la imagen principal.";
+                
+            } else if (tipo === 'efemeride') {
+                // ✅ EFEMÉRIDE - AHORA PERMITE MINIATURA
+                uploadZone.style.display = 'block';
+                fileInput.setAttribute('required', 'required');
+                fileInput.accept = "image/*, application/pdf";
+                campoAutor.style.display = 'none';
+                document.getElementById('headerArchivo').textContent = "Imagen del Evento";
+                document.getElementById('textoSubida').textContent = "Subir Imagen de la Efeméride";
+                miniaturaRequerido.textContent = "(Recomendado)";
+                textMiniatura.textContent = "Sube una miniatura que aparecerá en el inicio. Puede ser diferente a la imagen principal.";
+                
+            } else {
+                // PDF o Audio
                 uploadZone.style.display = 'block';
                 fileInput.setAttribute('required', 'required');
                 campoAutor.style.display = 'block';
                 document.getElementById('headerArchivo').textContent = "Archivo Principal";
                 document.getElementById('textoSubida').textContent = (tipo === 'pdf' ? "Subir PDF" : "Subir Audio (MP3)");
                 fileInput.accept = (tipo === 'pdf' ? ".pdf" : "audio/*");
-            }
-
-            // Lógica para mostrar/ocultar la miniatura (Siempre se muestra excepto para Efemérides)
-            if (tipo === 'efemeride') {
-                cardMiniatura.style.display = 'none';
-                miniaturaInput.removeAttribute('required'); // No es obligatoria
-            } else {
-                cardMiniatura.style.display = 'block';
-                // Si es un libro físico o virtual, la miniatura es muy recomendable
-                // miniaturaInput.setAttribute('required', 'required'); // Opcional, si quieres que siempre suban miniatura
+                miniaturaRequerido.textContent = "(Recomendado)";
+                textMiniatura.textContent = "Sube una portada para que el recurso se vea atractivo.";
             }
         }
-
-        // También inicializa el manejo de archivo para la miniatura
-        const miniaturaInput = document.getElementById('miniaturaInput'); // <-- NUEVO
-        const fileNameDisplayMiniatura = document.getElementById('fileNameDisplayMiniatura'); // <-- NUEVO
-        miniaturaInput.addEventListener('change', function() { // <-- NUEVO
-            if(this.files && this.files.length > 0) fileNameDisplayMiniatura.textContent = this.files[0].name; // <-- NUEVO
-        }); // <-- NUEVO
 
         // Inicializar el formulario al cargar la página
         actualizarFormulario();

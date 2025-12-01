@@ -606,14 +606,17 @@ def ver_archivo_privado(recurso_id):
         flash("Error al acceder al archivo en la nube.", "danger")
         return redirect(url_for('inicio'))
 
-# --- NUEVA RUTA: PASE VIP PARA MINIATURAS/PORTADAS ---
+# --- RUTA CORREGIDA: PASE VIP PARA MINIATURAS/PORTADAS ---
 @app.route('/ver-portada/<int:recurso_id>')
 def ver_portada(recurso_id):
     """Genera enlace temporal para ver la miniatura privada."""
     recurso = db.session.get(Recurso, recurso_id)
-    # Si no tiene miniatura, redirige a una imagen vacía o error
+    
+    # Si no tiene miniatura, redirige a una imagen placeholder válida
     if not recurso or not recurso.ruta_miniatura:
-        return redirect("https://via.placeholder.com/300x400?text=Sin+Portada")
+        # Usar placehold.co (funciona mejor)
+        return redirect("https://placehold.co/300x400/e0e0e0/666?text=Sin+Portada")
+    
     try:
         s3 = boto3.client(
             's3',
@@ -632,7 +635,7 @@ def ver_portada(recurso_id):
         return redirect(url_firmada)
     except Exception as e:
         print(f"Error portada: {e}")
-        return redirect("https://via.placeholder.com/300x400?text=Error")
+        return redirect("https://placehold.co/300x400/e0e0e0/666?text=Error")
 
 @app.route('/logout')
 def logout():
