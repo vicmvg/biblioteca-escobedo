@@ -817,7 +817,7 @@ def logout():
     return redirect(url_for('inicio'))
 
 # --- RUTA DE EMERGENCIA PARA RESETEAR LA BASE DE DATOS ---
-@app.route('/admin/reset-db-urgente')
+@app.route('/emergencia')
 def reset_db_urgente():
     if 'loggedin' not in session: return "Error: Inicia sesión como administrador primero."
     
