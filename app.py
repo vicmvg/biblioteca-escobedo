@@ -815,34 +815,32 @@ def eliminar_avance(id_avance):
 def logout():
     session.clear()
     return redirect(url_for('inicio'))
+# reset_emergency.py (ejecutar manualmente cuando sea necesario)
+import os
+import sys
+sys.path.append(os.path.dirname(__file__))
 
-@app.route('/emergencia')
-def reset_db_urgente():
-    try:
-        # 1. Eliminar todas las tablas de forma segura
-        db.session.remove()
-        db.drop_all()
-        
-        # 2. Crear tablas nuevas con las columnas actualizadas
-        db.create_all()
-        
-        # 3. Restaurar al administrador
-        hashed = generate_password_hash('123', method='pbkdf2:sha256')
-        admin = Usuario(
-            nombre='Maestra Bibliotecaria', 
-            email='admin@escobedo.edu', 
-            password_hash=hashed, 
-            rol='admin',
-            token_recuperacion='ME2025'
-        )
-        db.session.add(admin)
-        db.session.commit()
-        
-        return "✅ ¡Base de Datos Reiniciada! Tablas actualizadas correctamente. Ahora puedes iniciar sesión con: admin@escobedo.edu / 123"
-        
-    except Exception as e:
-        db.session.rollback()
-        return f"❌ ERROR al resetear: {str(e)}<br><br>Intenta acceder a tu panel de Render y elimina manualmente la base de datos PostgreSQL, luego reinicia el servicio."
+from app import app, db
+from models import Usuario
+from werkzeug.security import generate_password_hash
+
+with app.app_context():
+    # Forzar eliminación de tablas
+    db.drop_all()
+    db.create_all()
+    
+    # Crear administrador
+    admin = Usuario(
+        nombre='Administrador',
+        email='admin@escobedo.edu',
+        password_hash=generate_password_hash('Admin123!'),
+        rol='admin',
+        token_recuperacion='ME2025'
+    )
+    db.session.add(admin)
+    db.session.commit()
+    
+    print("✅ Base de datos reiniciada exitosamente")
 
 if __name__ == '__main__':
     inicializar_bd()
