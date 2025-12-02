@@ -54,6 +54,7 @@
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0 bg-primary p-2 rounded">
                     <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('admin_dashboard') }}">📊 Resumen</a></li>
                     <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('inventario') }}">📚 Inventario</a></li>
+                    <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('gestion_avances') }}">📁 Avances Docentes</a></li>
                     <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('nuevo_recurso') }}">☁️ Subir Archivos</a></li>
                     <li class="nav-item"><hr class="dropdown-divider bg-white"></li>
                     <li class="nav-item"><a class="nav-link text-warning" href="{{ url_for('logout') }}">🚪 Cerrar Sesión</a></li>
@@ -67,6 +68,11 @@
         <ul class="nav flex-column pe-3">
             <li class="nav-item"><a class="nav-link" href="{{ url_for('admin_dashboard') }}"><i class="bi bi-speedometer2 me-2"></i> Resumen</a></li>
             <li class="nav-item"><a class="nav-link active" href="{{ url_for('inventario') }}" style="background:white; color:var(--primary-color); font-weight:bold; border-radius:0 25px 25px 0;"><i class="bi bi-collection-fill me-2"></i> Inventario</a></li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('gestion_avances') }}">
+                    <i class="bi bi-folder-fill me-2"></i> Avances Docentes
+                </a>
+            </li>
             <li class="nav-item"><a class="nav-link" href="{{ url_for('nuevo_recurso') }}"><i class="bi bi-cloud-arrow-up-fill me-2"></i> Subir Archivos</a></li>
             <li class="nav-item">
                 <a class="nav-link" href="{{ url_for('gestion_prestamos') }}">

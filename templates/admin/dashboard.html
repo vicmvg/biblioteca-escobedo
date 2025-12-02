@@ -108,25 +108,31 @@
             background-color: #e6f0ff;
         }
 
+        /* Efecto hover para tarjetas */
+        .hover-scale {
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .hover-scale:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15) !important;
+        }
+
         /* --- ESTILOS PARA MÓVIL (RESPONSIVE) --- */
-        /* Cuando la pantalla sea menor a 768px (Tablets y Celulares) */
         @media (max-width: 768px) {
-            /* 1. Ocultar la barra lateral fija */
             .sidebar { 
                 display: none !important; 
             }
             
-            /* 2. Quitar el margen izquierdo del contenido */
             .main-content { 
                 margin-left: 0 !important; 
                 padding: 15px !important; 
             }
-            /* 3. Mostrar el menú de navegación móvil (que crearemos abajo) */
+            
             .mobile-nav {
                 display: block !important;
             }
         }
-        /* En computadora, el menú móvil está oculto */
+        
         .mobile-nav {
             display: none;
         }
@@ -146,6 +152,7 @@
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0 bg-primary p-2 rounded">
                     <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('admin_dashboard') }}">📊 Resumen</a></li>
                     <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('inventario') }}">📚 Inventario</a></li>
+                    <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('gestion_avances') }}">📁 Avances Docentes</a></li>
                     <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('nuevo_recurso') }}">☁️ Subir Archivos</a></li>
                     <li class="nav-item"><hr class="dropdown-divider bg-white"></li>
                     <li class="nav-item"><a class="nav-link text-warning" href="{{ url_for('logout') }}">🚪 Cerrar Sesión</a></li>
@@ -169,6 +176,11 @@
             <li class="nav-item">
                 <a class="nav-link" href="{{ url_for('inventario') }}">
                     <i class="bi bi-collection-fill me-2"></i> Inventario Libros
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('gestion_avances') }}">
+                    <i class="bi bi-folder-fill me-2"></i> Avances Docentes
                 </a>
             </li>
             <li class="nav-item">
@@ -286,6 +298,13 @@
                     <span class="quick-icon text-info"><i class="bi bi-printer"></i></span>
                     <h5 class="fw-bold">Imprimir Etiquetas</h5>
                     <p class="text-muted small mb-0">Generar códigos para libros nuevos</p>
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="{{ url_for('gestion_avances') }}" class="quick-action-btn">
+                    <span class="quick-icon text-warning"><i class="bi bi-folder-plus"></i></span>
+                    <h5 class="fw-bold">Avances y Evidencias</h5>
+                    <p class="text-muted small mb-0">Subir planeaciones y reportes</p>
                 </a>
             </div>
         </div>

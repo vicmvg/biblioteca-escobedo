@@ -11,7 +11,8 @@
         :root { --primary-color: #004d99; --sidebar-width: 280px; }
         body { background-color: #f8f9fa; }
         .sidebar { width: var(--sidebar-width); height: 100vh; position: fixed; top: 0; left: 0; background-color: var(--primary-color); color: white; padding-top: 20px; z-index: 1000; }
-        .sidebar .nav-link { color: rgba(255,255,255,0.8); margin-bottom: 5px; padding: 10px 20px; }
+        .sidebar .nav-link { color: rgba(255,255,255,0.8); margin-bottom: 5px; padding: 10px 20px; border-radius: 0 25px 25px 0; }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active { color: var(--primary-color); background-color: white; font-weight: bold; }
         .main-content { margin-left: var(--sidebar-width); padding: 30px; }
         .upload-zone { border: 2px dashed #004d99; border-radius: 10px; padding: 40px 20px; text-align: center; background-color: #f0f8ff; position: relative; cursor: pointer;}
 
@@ -38,6 +39,7 @@
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0 bg-primary p-2 rounded">
                     <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('admin_dashboard') }}">📊 Resumen</a></li>
                     <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('inventario') }}">📚 Inventario</a></li>
+                    <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('gestion_avances') }}">📁 Avances Docentes</a></li>
                     <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('nuevo_recurso') }}">☁️ Subir Archivos</a></li>
                     <li class="nav-item"><hr class="dropdown-divider bg-white"></li>
                     <li class="nav-item"><a class="nav-link text-warning" href="{{ url_for('logout') }}">🚪 Cerrar Sesión</a></li>
@@ -51,6 +53,11 @@
         <ul class="nav flex-column pe-3">
             <li class="nav-item"><a class="nav-link" href="{{ url_for('admin_dashboard') }}"><i class="bi bi-speedometer2 me-2"></i> Resumen</a></li>
             <li class="nav-item"><a class="nav-link" href="{{ url_for('inventario') }}"><i class="bi bi-collection me-2"></i> Inventario</a></li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('gestion_avances') }}">
+                    <i class="bi bi-folder-fill me-2"></i> Avances Docentes
+                </a>
+            </li>
             <li class="nav-item"><a class="nav-link active" href="{{ url_for('nuevo_recurso') }}" style="background:white; color:var(--primary-color); font-weight:bold; border-radius:0 25px 25px 0;"><i class="bi bi-cloud-arrow-up-fill me-2"></i> Subir Archivos</a></li>
             <li class="nav-item">
                 <a class="nav-link" href="{{ url_for('gestion_prestamos') }}">
@@ -58,6 +65,7 @@
                 </a>
             </li>
         </ul>
+        <div class="mt-auto p-3"><a href="{{ url_for('logout') }}" class="btn btn-outline-light w-100"><i class="bi bi-box-arrow-left"></i> Cerrar Sesión</a></div>
     </nav>
 
     <main class="main-content">
