@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Mi Espacio de Lectura 🚀</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { 
+            background-color: #E0F7FA; /* Fondo Azul Cielo */
+            font-family: 'Comic Neue', cursive; 
+        }
+        .navbar-niños {
+            background-color: #FF6F00; /* Naranja Brillante */
+            border-bottom: 5px solid #FFD54F;
+        }
+        .card-libro {
+            border: none;
+            border-radius: 15px;
+            transition: transform 0.3s;
+            cursor: pointer;
+            overflow: hidden;
+        }
+        .card-libro:hover {
+            transform: scale(1.05) rotate(1deg);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        .btn-favorito {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .seccion-titulo {
+            color: #006064;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-bottom: 3px dashed #00BCD4;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-niños navbar-dark shadow p-3">
+        <div class="container">
+            <a class="navbar-brand fs-2 fw-bold" href="#">
+                🦁 Biblioteca Exploradores
+            </a>
+            <div class="d-flex align-items-center bg-white rounded-pill px-3 py-1 shadow-sm">
+                <span class="fs-4 me-2">👋</span>
+                <div class="lh-1">
+                    <div class="fw-bold text-dark">{{ usuario.nombre }}</div>
+                    <small class="text-muted fw-bold">Grupo: {{ usuario.grupo }}</small>
+                </div>
+            </div>
+            <a href="{{ url_for('logout') }}" class="btn btn-danger rounded-pill fw-bold ms-3 border-2 border-white">
+                <i class="bi bi-box-arrow-right"></i> Salir
+            </a>
+        </div>
+    </nav>
+
+    <div class="container py-5">
+        
+        <div class="mb-5">
+            <h2 class="seccion-titulo"><i class="bi bi-star-fill text-warning"></i> Mis Libros Favoritos</h2>
+            
+            {% if usuario.mis_favoritos %}
+            <div class="row g-4">
+                {% for libro in usuario.mis_favoritos %}
+                <div class="col-6 col-md-3 col-lg-2">
+                    <div class="card card-libro h-100 shadow-sm">
+                        <div class="position-relative">
+                            {% if libro.ruta_miniatura %}
+                                <img src="{{ url_for('ver_portada', recurso_id=libro.id_recurso) }}" class="card-img-top" style="height: 180px; object-fit: cover;">
+                            {% else %}
+                                <div class="bg-info d-flex align-items-center justify-content-center text-white" style="height: 180px;">
+                                    <i class="bi bi-book fs-1"></i>
+                                </div>
+                            {% endif %}
+                            
+                            <a href="{{ url_for('toggle_favorito', recurso_id=libro.id_recurso) }}" class="btn-favorito text-danger fs-5">
+                                <i class="bi bi-heart-fill"></i>
+                            </a>
+                        </div>
+                        <div class="card-body p-2 text-center bg-white">
+                            <h6 class="fw-bold text-dark mb-1">{{ libro.titulo }}</h6>
+                            <a href="{{ url_for('ver_recurso', recurso_id=libro.id_recurso) }}" class="btn btn-sm btn-outline-primary rounded-pill w-100 mt-1">Leer</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="alert alert-light border-0 shadow-sm rounded-4 text-center py-4">
+                <i class="bi bi-emoji-frown fs-1 text-muted"></i>
+                <p class="fs-5 text-muted mb-0">Aún no tienes favoritos. ¡Explora abajo y dale corazón a los que te gusten!</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <div>
+            <h2 class="seccion-titulo"><i class="bi bi-compass-fill text-success"></i> Nuevas Aventuras</h2>
+            <div class="row g-4">
+                {% for libro in sugeridos %}
+                <div class="col-6 col-md-3 col-lg-2">
+                    <div class="card card-libro h-100 shadow-sm">
+                        <div class="position-relative">
+                            {% if libro.ruta_miniatura %}
+                                <img src="{{ url_for('ver_portada', recurso_id=libro.id_recurso) }}" class="card-img-top" style="height: 180px; object-fit: cover;">
+                            {% else %}
+                                <div class="bg-secondary d-flex align-items-center justify-content-center text-white" style="height: 180px;">
+                                    <i class="bi bi-book fs-1"></i>
+                                </div>
+                            {% endif %}
+                            
+                            <a href="{{ url_for('toggle_favorito', recurso_id=libro.id_recurso) }}" class="btn-favorito text-muted fs-5">
+                                <i class="bi bi-heart"></i>
+                            </a>
+                        </div>
+                        <div class="card-body p-2 text-center bg-white">
+                            <h6 class="fw-bold text-dark mb-1 text-truncate">{{ libro.titulo }}</h6>
+                            <small class="d-block text-muted mb-2">{{ libro.autor }}</small>
+                            <a href="{{ url_for('ver_recurso', recurso_id=libro.id_recurso) }}" class="btn btn-sm btn-primary rounded-pill w-100">
+                                <i class="bi bi-eye"></i> Ver
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
