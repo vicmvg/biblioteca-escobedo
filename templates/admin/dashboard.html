@@ -153,6 +153,7 @@
                     <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('admin_dashboard') }}">📊 Resumen</a></li>
                     <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('inventario') }}">📚 Inventario</a></li>
                     <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('gestion_avances') }}">📁 Avances Docentes</a></li>
+                    <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('registrar_alumno') }}">👥 Alumnos</a></li>
                     <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('nuevo_recurso') }}">☁️ Subir Archivos</a></li>
                     <li class="nav-item"><hr class="dropdown-divider bg-white"></li>
                     <li class="nav-item"><a class="nav-link text-warning" href="{{ url_for('logout') }}">🚪 Cerrar Sesión</a></li>
@@ -181,6 +182,11 @@
             <li class="nav-item">
                 <a class="nav-link" href="{{ url_for('gestion_avances') }}">
                     <i class="bi bi-folder-fill me-2"></i> Avances Docentes
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('registrar_alumno') }}">
+                    <i class="bi bi-people-fill me-2"></i> Alumnos
                 </a>
             </li>
             <li class="nav-item">
@@ -305,6 +311,13 @@
                     <span class="quick-icon text-warning"><i class="bi bi-folder-plus"></i></span>
                     <h5 class="fw-bold">Avances y Evidencias</h5>
                     <p class="text-muted small mb-0">Subir planeaciones y reportes</p>
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="{{ url_for('registrar_alumno') }}" class="quick-action-btn">
+                    <span class="quick-icon text-success"><i class="bi bi-person-plus-fill"></i></span>
+                    <h5 class="fw-bold">Registrar Alumnos</h5>
+                    <p class="text-muted small mb-0">Crear usuarios para niños</p>
                 </a>
             </div>
         </div>
