@@ -39,7 +39,7 @@
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0 bg-primary p-2 rounded">
                     <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('admin_dashboard') }}">📊 Resumen</a></li>
                     <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('inventario') }}">📚 Inventario</a></li>
-                    <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('gestion_avances') }}">📁 Avances Docentes</a></li>
+                    <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('gestion_avances') }}">📝 Avances Docentes</a></li>
                     <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('nuevo_recurso') }}">☁️ Subir Archivos</a></li>
                     <li class="nav-item"><hr class="dropdown-divider bg-white"></li>
                     <li class="nav-item"><a class="nav-link text-warning" href="{{ url_for('logout') }}">🚪 Cerrar Sesión</a></li>
@@ -118,6 +118,33 @@
                             <div class="mb-3" id="campoStock" style="display:none;">
                                 <label class="form-label fw-bold text-danger">Stock Inicial (Ejemplares)</label>
                                 <input type="number" class="form-control" name="ejemplares_total" value="1" min="1">
+                            </div>
+
+                            <div class="row mb-4 p-3 bg-light rounded-3 border">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold text-primary">Grado Escolar</label>
+                                    <select name="grado" class="form-select border-primary">
+                                        <option value="General">General / Todos</option>
+                                        <option value="1°">1° Grado</option>
+                                        <option value="2°">2° Grado</option>
+                                        <option value="3°">3° Grado</option>
+                                        <option value="4°">4° Grado</option>
+                                        <option value="5°">5° Grado</option>
+                                        <option value="6°">6° Grado</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 d-flex align-items-center">
+                                    <div class="form-check mt-3 ms-2">
+                                        <input class="form-check-input" type="checkbox" name="es_recomendado" id="checkRecomendar" style="transform: scale(1.5);">
+                                        <label class="form-check-label fw-bold text-warning ms-2" for="checkRecomendar">
+                                            <i class="bi bi-star-fill"></i> ¡Destacar como Recomendado!
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-12 mt-3">
+                                    <label class="form-label text-muted small">Tu opinión (si lo recomendaste)</label>
+                                    <input type="text" name="comentario_biblio" class="form-control" placeholder="Ej: ¡Una historia increíble sobre la amistad!">
+                                </div>
                             </div>
 
                             <div class="mb-3">
