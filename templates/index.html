@@ -186,8 +186,58 @@
         </div>
     </header>
 
+    <!-- FILTRO POR GRADO -->
+    <div class="container mt-4">
+        <h5 class="fw-bold text-muted mb-3"><i class="bi bi-mortarboard-fill"></i> Filtrar por Grado:</h5>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="{{ url_for('inicio') }}" class="btn btn-outline-secondary rounded-pill btn-sm {{ 'active' if not grado_actual else '' }}">Todos</a>
+            <a href="{{ url_for('inicio', grado='1°') }}" class="btn btn-outline-primary rounded-pill btn-sm {{ 'active' if grado_actual == '1°' else '' }}">1° Grado</a>
+            <a href="{{ url_for('inicio', grado='2°') }}" class="btn btn-outline-primary rounded-pill btn-sm {{ 'active' if grado_actual == '2°' else '' }}">2° Grado</a>
+            <a href="{{ url_for('inicio', grado='3°') }}" class="btn btn-outline-primary rounded-pill btn-sm {{ 'active' if grado_actual == '3°' else '' }}">3° Grado</a>
+            <a href="{{ url_for('inicio', grado='4°') }}" class="btn btn-outline-primary rounded-pill btn-sm {{ 'active' if grado_actual == '4°' else '' }}">4° Grado</a>
+            <a href="{{ url_for('inicio', grado='5°') }}" class="btn btn-outline-primary rounded-pill btn-sm {{ 'active' if grado_actual == '5°' else '' }}">5° Grado</a>
+            <a href="{{ url_for('inicio', grado='6°') }}" class="btn btn-outline-primary rounded-pill btn-sm {{ 'active' if grado_actual == '6°' else '' }}">6° Grado</a>
+        </div>
+    </div>
+
     <main class="container" style="margin-top: 40px; position: relative; z-index: 10;">
         
+        <!-- SECCIÓN: EL BIBLIOTECARIO RECOMIENDA -->
+        {% if recomendados %}
+        <div class="container my-5">
+            <div class="p-4 rounded-4 shadow-sm bg-warning bg-opacity-10 border border-warning">
+                <h3 class="fw-bold text-dark mb-4"><i class="bi bi-star-fill text-warning"></i> El Bibliotecario Recomienda</h3>
+                <div class="row g-4">
+                    {% for libro in recomendados %}
+                    <div class="col-md-4">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="d-flex g-0">
+                                <div class="col-4">
+                                    {% if libro.ruta_miniatura %}
+                                        <img src="{{ url_for('ver_portada', recurso_id=libro.id_recurso) }}" class="img-fluid rounded-start h-100 object-fit-cover">
+                                    {% else %}
+                                        <div class="bg-secondary h-100 d-flex align-items-center justify-content-center text-white"><i class="bi bi-book"></i></div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-8">
+                                    <div class="card-body py-2">
+                                        <h6 class="card-title fw-bold text-truncate">{{ libro.titulo }}</h6>
+                                        <p class="small fst-italic text-muted mb-2">
+                                            <i class="bi bi-chat-quote-fill text-warning"></i> 
+                                            "{{ libro.comentario_biblio if libro.comentario_biblio else '¡Muy recomendado!' }}"
+                                        </p>
+                                        <a href="{{ url_for('ver_recurso', recurso_id=libro.id_recurso) }}" class="btn btn-sm btn-dark rounded-pill">Ver</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
         <!-- SECCIÓN: LIBROS VIRTUALES -->
         <div id="pdfs" class="mb-5 pt-4">
             <div class="d-flex align-items-center mb-4 ps-2">
