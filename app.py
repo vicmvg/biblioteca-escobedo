@@ -96,13 +96,6 @@ class Recurso(db.Model):
     autor = db.Column(db.String(200), nullable=False)
     categoria = db.Column(db.String(100), nullable=False, default='General')
     tipo_recurso = db.Column(db.String(20), nullable=False)
-    
-    # --- AGREGAR ESTO ---
-    grado = db.Column(db.String(50), default='General') # 1°, 2°, etc.
-    es_recomendado = db.Column(db.Boolean, default=False) # Para saber si es VIP
-    comentario_biblio = db.Column(db.String(255), nullable=True) # Tu opinión
-    # --------------------
-    
     ruta_archivo_e2 = db.Column(db.String(255), nullable=True) 
     ruta_miniatura = db.Column(db.String(255), nullable=True)
     ejemplares_total = db.Column(db.Integer, default=0)
@@ -154,7 +147,6 @@ def inicializar_bd():
 def inicio():
     # 1. Ver si alguien escribió algo en el buscador
     busqueda = request.args.get('q')
-    grado_filtro = request.args.get('grado') # <--- NUEVO: Capturar filtro
     
     # Inicializar query base
     query = Recurso.query
@@ -163,11 +155,6 @@ def inicio():
         # MODO BÚSQUEDA
         filtro = f"%{busqueda}%"
         query = query.filter((Recurso.titulo.like(filtro)) | (Recurso.autor.like(filtro)))
-    
-    # --- AGREGAR ESTE BLOQUE ---
-    if grado_filtro:
-        query = query.filter_by(grado=grado_filtro)
-    # ---------------------------
     
     # Obtener todos los recursos según el filtro/búsqueda
     todos_recursos = query.all()
@@ -180,25 +167,18 @@ def inicio():
     efemerides = [r for r in todos_recursos if r.tipo_recurso == 'efemeride'][:4]
     # --- ¡NUEVA LISTA! ---
     videos = [r for r in todos_recursos if r.tipo_recurso == 'video'][:4]
-    
-    # --- AGREGAR ESTA LÍNEA ---
-    recomendados = Recurso.query.filter_by(es_recomendado=True).limit(3).all()
 
     # Si hay búsqueda activa, mostramos todos los resultados, si no, limitamos a 4
     if busqueda:
          return render_template('index.html', 
                            pdfs=pdfs, audios=audios, fisicos=fisicos, 
-                           bios=bios, efemerides=efemerides, videos=videos,
-                           recomendados=recomendados, # <--- ENVIAR ESTO
-                           busqueda_activa=busqueda,
-                           grado_actual=grado_filtro) # <--- Y ESTO
+                           bios=bios, efemerides=efemerides, videos=videos, # <-- Agrega videos aquí
+                           busqueda_activa=busqueda)
     else:
         return render_template('index.html', 
                             pdfs=pdfs, audios=audios, fisicos=fisicos, 
-                            bios=bios, efemerides=efemerides, videos=videos,
-                            recomendados=recomendados, # <--- ENVIAR ESTO
-                            busqueda_activa=None,
-                            grado_actual=grado_filtro) # <--- Y ESTO
+                            bios=bios, efemerides=efemerides, videos=videos, # <-- Y aquí también
+                            busqueda_activa=None)
 
 
 @app.route('/ver-recurso/<int:recurso_id>')
@@ -352,12 +332,6 @@ def nuevo_recurso():
             descripcion = request.form.get('descripcion')
             categoria = request.form.get('categoria')
             
-            # --- AGREGAR ESTO ---
-            grado = request.form.get('grado')
-            es_recomendado = True if request.form.get('es_recomendado') else False
-            comentario = request.form.get('comentario_biblio')
-            # --------------------
-            
             ejemplares_input = request.form.get('ejemplares_total')
             ejemplares_total = int(ejemplares_input) if ejemplares_input and ejemplares_input.isdigit() else 0
             
@@ -384,14 +358,8 @@ def nuevo_recurso():
                 ruta_miniatura_final = upload_to_e2(miniatura, nombre_miniatura)
 
             nuevo = Recurso(
-                titulo=titulo, 
-                autor=autor, 
-                tipo_recurso=tipo,
-                descripcion=descripcion, 
-                categoria=categoria,
-                grado=grado,                     # <--- NUEVO
-                es_recomendado=es_recomendado,   # <--- NUEVO
-                comentario_biblio=comentario,    # <--- NUEVO
+                titulo=titulo, autor=autor, tipo_recurso=tipo,
+                descripcion=descripcion, categoria=categoria,
                 ejemplares_total=ejemplares_total, 
                 ejemplares_disponibles=ejemplares_total, 
                 ruta_archivo_e2=ruta_final, # Aquí va el Link de YT o la ruta de IDrive
@@ -815,33 +783,28 @@ def eliminar_avance(id_avance):
 def logout():
     session.clear()
     return redirect(url_for('inicio'))
-# reset_emergency.py (ejecutar manualmente cuando sea necesario)
-import os
-import sys
-sys.path.append(os.path.dirname(__file__))
-
-from app import app, db
-from models import Usuario
-from werkzeug.security import generate_password_hash
-
-with app.app_context():
-    # Forzar eliminación de tablas
+    # --- RUTA DE EMERGENCIA PARA RESETEAR LA BASE DE DATOS ---
+@app.route('/admin/reset-db-urgente')
+def reset_db_urgente():
+    if 'loggedin' not in session: return "Error: Inicia sesión como administrador primero."
+    
+    # 1. Borrar tablas viejas
     db.drop_all()
+    
+    # 2. Crear tablas nuevas (Incluyendo la de Avances)
     db.create_all()
     
-    # Crear administrador
-    admin = Usuario(
-        nombre='Administrador',
-        email='admin@escobedo.edu',
-        password_hash=generate_password_hash('Admin123!'),
-        rol='admin',
-        token_recuperacion='ME2025'
-    )
+    # 3. Restaurar al administrador
+    hashed = generate_password_hash('123', method='pbkdf2:sha256')
+    admin = Usuario(nombre='Maestra Bibliotecaria', 
+                    email='admin@escobedo.edu', 
+                    password_hash=hashed, 
+                    rol='admin',
+                    token_recuperacion='ME2025')
     db.session.add(admin)
     db.session.commit()
     
-    print("✅ Base de datos reiniciada exitosamente")
-
+    return "¡Base de Datos Reiniciada! Tablas actualizadas correctamente."
 if __name__ == '__main__':
     inicializar_bd()
     app.run(debug=True, host='0.0.0.0', port=5000)
