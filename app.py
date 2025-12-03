@@ -789,4 +789,3 @@ def reset_db_urgente():
 if __name__ == '__main__':
     inicializar_bd()
     app.run(debug=True, host='0.0.0.0', port=5000)
-[file content end]
