@@ -1,5 +1,3 @@
-[file name]: app.py
-[file content begin]
 from flask import Flask, render_template, request, redirect, url_for, session, flash, send_file
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.utils import secure_filename
