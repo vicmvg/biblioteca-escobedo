@@ -1,3 +1,5 @@
+[file name]: app.py
+[file content begin]
 from flask import Flask, render_template, request, redirect, url_for, session, flash, send_file
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.utils import secure_filename
@@ -729,26 +731,62 @@ def logout():
     session.clear()
     return redirect(url_for('inicio'))
 
-# --- RUTA DE EMERGENCIA SEGURA ---
-@app.route('/admin/reset-db-urgente')
+# --- RUTA DE EMERGENCIA SIN AUTENTICACIÓN ---
+@app.route('/emergencia/reset-db-total')
 def reset_db_urgente():
-    if 'loggedin' not in session: 
-        return "Error: Inicia sesión como administrador primero."
-    
-    db.drop_all()
-    db.create_all()
-    
-    hashed = generate_password_hash('123', method='pbkdf2:sha256')
-    admin = Usuario(nombre='Maestra Bibliotecaria', 
-                    email='admin@escobedo.edu', 
-                    password_hash=hashed, 
-                    rol='admin',
-                    token_recuperacion='ME2025')
-    db.session.add(admin)
-    db.session.commit()
-    
-    return "¡Base de Datos Reiniciada! Tablas actualizadas correctamente."
+    """
+    ⚠️ RUTA DE EMERGENCIA - NO REQUIERE AUTENTICACIÓN
+    Solo usar en desarrollo o cuando haya problemas graves en la base de datos
+    """
+    try:
+        # Eliminar todas las tablas
+        db.drop_all()
+        
+        # Crear las tablas de nuevo
+        db.create_all()
+        
+        # Crear usuario admin por defecto
+        hashed = generate_password_hash('123', method='pbkdf2:sha256')
+        admin = Usuario(
+            nombre='Maestra Bibliotecaria', 
+            email='admin@escobedo.edu', 
+            password_hash=hashed, 
+            rol='admin',
+            token_recuperacion='ME2025'
+        )
+        db.session.add(admin)
+        db.session.commit()
+        
+        return """
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Base de Datos Reiniciada</title>
+            <style>
+                body { font-family: Arial, sans-serif; padding: 40px; text-align: center; }
+                .success { color: green; font-size: 24px; margin: 20px 0; }
+                .warning { color: orange; font-size: 18px; margin: 30px 0; padding: 20px; background: #fff8e1; border-radius: 10px; }
+                a { color: #0066cc; text-decoration: none; font-weight: bold; }
+            </style>
+        </head>
+        <body>
+            <div class="success">✅ ¡Base de Datos Reiniciada Exitosamente!</div>
+            <p>Todas las tablas han sido recreadas.</p>
+            <p>Usuario admin recreado:</p>
+            <p><strong>Email:</strong> admin@escobedo.edu</p>
+            <p><strong>Contraseña:</strong> 123</p>
+            <div class="warning">
+                ⚠️ ADVERTENCIA: Esta acción borró todos los datos existentes.<br>
+                Solo debe usarse en casos de emergencia o desarrollo.
+            </div>
+            <p><a href="/">Ir a la página principal</a> | <a href="/admin/login">Iniciar sesión como admin</a></p>
+        </body>
+        </html>
+        """
+    except Exception as e:
+        return f"Error al reiniciar la base de datos: {str(e)}"
 
 if __name__ == '__main__':
     inicializar_bd()
     app.run(debug=True, host='0.0.0.0', port=5000)
+[file content end]
