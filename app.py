@@ -33,12 +33,14 @@ def youtube_embed_filter(url):
     
     return url # Si no es de youtube, regresa el link original
 
-# --- CONFIGURACIÓN INTELIGENTE DE BASE DE DATOS ---
-# Si hay una base de datos en la nube (Render), usa esa. Si no, usa la local.
-database_url = os.environ.get('DATABASE_URL', 'sqlite:///' + os.path.join(BASE_DIR, 'biblioteca.db'))
-# Corrección necesaria para PostgreSQL en Render (cambia postgres:// por postgresql://)
+# --- CONFIGURACIÓN INTELIGENTE DE BASE DE DATOS (NEON/POSTGRESQL) ---
+# Si hay una base de datos en la nube (Neon/Render), usa esa. Si no, usa la local.
+database_url = os.environ.get('DATABASE_URL', 'sqlite:///biblioteca.db')
+
+# Corrección necesaria para PostgreSQL (cambia postgres:// por postgresql://)
 if database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql://", 1)
+
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
