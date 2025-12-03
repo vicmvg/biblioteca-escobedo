@@ -140,6 +140,39 @@
             border: 0;
         }
 
+        /* Estilos para filtros de grado */
+        .filter-section {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            margin-bottom: 2rem;
+        }
+
+        .btn-outline-primary.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        /* Sección de recomendaciones */
+        .recommendations-section {
+            background: linear-gradient(135deg, #fff9e6 0%, #ffe9a0 100%);
+            border: 2px solid var(--accent-color);
+            padding: 2rem;
+            border-radius: 20px;
+            margin-bottom: 3rem;
+            box-shadow: 0 10px 30px rgba(255, 193, 7, 0.2);
+        }
+
+        .recommendations-section h3 {
+            color: #856404;
+        }
+
+        .object-fit-cover {
+            object-fit: cover;
+        }
+
     </style>
 </head>
 <body>
@@ -188,6 +221,70 @@
 
     <main class="container" style="margin-top: 40px; position: relative; z-index: 10;">
         
+        <!-- FILTROS POR GRADO -->
+        <div class="filter-section">
+            <h5 class="fw-bold text-muted mb-3">
+                <i class="bi bi-funnel-fill me-2"></i>Filtrar por Grado:
+            </h5>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{{ url_for('inicio') }}" class="btn btn-outline-secondary rounded-pill {{ 'active' if not grado_actual else '' }}">
+                    <i class="bi bi-grid-fill me-1"></i>Todos
+                </a>
+                <a href="{{ url_for('inicio', grado='1°') }}" class="btn btn-outline-primary rounded-pill {{ 'active' if grado_actual == '1°' else '' }}">1°</a>
+                <a href="{{ url_for('inicio', grado='2°') }}" class="btn btn-outline-primary rounded-pill {{ 'active' if grado_actual == '2°' else '' }}">2°</a>
+                <a href="{{ url_for('inicio', grado='3°') }}" class="btn btn-outline-primary rounded-pill {{ 'active' if grado_actual == '3°' else '' }}">3°</a>
+                <a href="{{ url_for('inicio', grado='4°') }}" class="btn btn-outline-primary rounded-pill {{ 'active' if grado_actual == '4°' else '' }}">4°</a>
+                <a href="{{ url_for('inicio', grado='5°') }}" class="btn btn-outline-primary rounded-pill {{ 'active' if grado_actual == '5°' else '' }}">5°</a>
+                <a href="{{ url_for('inicio', grado='6°') }}" class="btn btn-outline-primary rounded-pill {{ 'active' if grado_actual == '6°' else '' }}">6°</a>
+            </div>
+        </div>
+
+        <!-- SECCIÓN: RECOMENDACIONES DEL BIBLIOTECARIO -->
+        {% if recomendados %}
+        <div class="recommendations-section">
+            <h3 class="fw-bold mb-4">
+                <i class="bi bi-star-fill text-warning me-2"></i>El Bibliotecario Recomienda
+            </h3>
+            <div class="row g-4">
+                {% for libro in recomendados %}
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm hover-lift">
+                        <div class="row g-0 h-100">
+                            <div class="col-4">
+                                {% if libro.ruta_miniatura %}
+                                    <img src="{{ url_for('ver_portada', recurso_id=libro.id_recurso) }}" 
+                                         class="img-fluid rounded-start h-100 object-fit-cover" 
+                                         alt="Portada de {{ libro.titulo }}">
+                                {% else %}
+                                    <div class="bg-secondary h-100 d-flex align-items-center justify-content-center text-white rounded-start">
+                                        <i class="bi bi-book fs-2"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-8">
+                                <div class="card-body py-2 px-3">
+                                    <h6 class="card-title fw-bold text-truncate mb-2">{{ libro.titulo }}</h6>
+                                    <p class="small text-muted mb-2">
+                                        <i class="bi bi-person-fill"></i> {{ libro.autor }}
+                                    </p>
+                                    <p class="small fst-italic text-secondary mb-3" style="font-size: 0.85rem;">
+                                        <i class="bi bi-chat-quote-fill text-warning"></i> 
+                                        "{{ libro.comentario_biblio if libro.comentario_biblio else '¡Lectura imperdible!' }}"
+                                    </p>
+                                    <a href="{{ url_for('ver_recurso', recurso_id=libro.id_recurso) }}" 
+                                       class="btn btn-sm btn-dark rounded-pill stretched-link">
+                                        <i class="bi bi-eye-fill me-1"></i>Ver más
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
         <!-- SECCIÓN: LIBROS VIRTUALES -->
         <div id="pdfs" class="mb-5 pt-4">
             <div class="d-flex align-items-center mb-4 ps-2">
@@ -348,7 +445,7 @@
         </div>
         {% endif %}
 
-        <!-- SECCIÓN: VIDEOS (NUEVA SECCIÓN - ACTUALIZADA) -->
+        <!-- SECCIÓN: VIDEOS -->
         {% if videos %}
         <div id="videos" class="mb-5 pt-4">
             <div class="d-flex align-items-center mb-4 ps-2">
@@ -360,7 +457,6 @@
                 {% for video in videos %}
                 <div class="col-md-3">
                     <div class="card resource-card h-100 border-0 shadow-sm">
-                        <!-- REPRODUCTOR DE VIDEO INCORPORADO -->
                         <div class="video-container">
                             <iframe 
                                 src="{{ video.ruta_archivo_e2|youtube_embed }}" 
@@ -391,7 +487,7 @@
         </div>
         {% endif %}
 
-        <!-- SECCIÓN: EFEMÉRIDES (CORREGIDA) -->
+        <!-- SECCIÓN: EFEMÉRIDES -->
         {% if efemerides %}
         <div id="efemerides" class="mb-5 pt-5">
             <div class="d-flex align-items-center mb-4 ps-2">

@@ -16,13 +16,23 @@
         .main-content { margin-left: var(--sidebar-width); padding: 30px; }
         .upload-zone { border: 2px dashed #004d99; border-radius: 10px; padding: 40px 20px; text-align: center; background-color: #f0f8ff; position: relative; cursor: pointer;}
 
-        /* --- ESTILOS PARA MÓVIL (RESPONSIVE) --- */
         @media (max-width: 768px) {
             .sidebar { display: none !important; }
             .main-content { margin-left: 0 !important; padding: 15px !important; }
             .mobile-nav { display: block !important; }
         }
         .mobile-nav { display: none; }
+        
+        /* Estilos para la sección de recomendados */
+        .seccion-recomendado { 
+            background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%);
+            border: 2px solid #ffc107;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(255, 193, 7, 0.2);
+        }
+        .check-recomendado:checked + label {
+            color: #ff6b00 !important;
+        }
     </style>
 </head>
 <body>
@@ -39,7 +49,7 @@
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0 bg-primary p-2 rounded">
                     <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('admin_dashboard') }}">📊 Resumen</a></li>
                     <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('inventario') }}">📚 Inventario</a></li>
-                    <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('gestion_avances') }}">📁 Avances Docentes</a></li>
+                    <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('gestion_avances') }}">📝 Avances Docentes</a></li>
                     <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('nuevo_recurso') }}">☁️ Subir Archivos</a></li>
                     <li class="nav-item"><hr class="dropdown-divider bg-white"></li>
                     <li class="nav-item"><a class="nav-link text-warning" href="{{ url_for('logout') }}">🚪 Cerrar Sesión</a></li>
@@ -127,11 +137,70 @@
                         </div>
                     </div>
 
-                    <!-- ✅ TARJETA DE MINIATURA SIEMPRE VISIBLE -->
-                    <div class="card shadow-sm mb-4" id="cardMiniatura">
-                        <div class="card-header bg-white"><h5 class="mb-0 text-info"><i class="bi bi-image"></i> Miniatura / Portada <span id="miniaturaRequerido">(Opcional)</span></h5></div>
+                    <!-- ⭐ NUEVA SECCIÓN: CLASIFICACIÓN Y RECOMENDACIÓN -->
+                    <div class="card shadow-sm mb-4 seccion-recomendado">
+                        <div class="card-header bg-warning bg-opacity-25 border-warning">
+                            <h5 class="mb-0 text-dark">
+                                <i class="bi bi-bookmark-star-fill text-warning"></i> Clasificación Pedagógica
+                            </h5>
+                        </div>
                         <div class="card-body">
-                            <p class="text-muted small" id="textMiniatura">Sube una imagen cuadrada (JPG, PNG) para la portada. Si no subes, se usará una imagen por defecto.</p>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold text-primary">
+                                        <i class="bi bi-mortarboard-fill"></i> Grado Escolar
+                                    </label>
+                                    <select name="grado" class="form-select border-primary">
+                                        <option value="General">General / Todos los Grados</option>
+                                        <option value="1°">1° Grado</option>
+                                        <option value="2°">2° Grado</option>
+                                        <option value="3°">3° Grado</option>
+                                        <option value="4°">4° Grado</option>
+                                        <option value="5°">5° Grado</option>
+                                        <option value="6°">6° Grado</option>
+                                    </select>
+                                    <small class="text-muted">Ayuda a filtrar por nivel educativo</small>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3 d-flex align-items-center justify-content-center">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input check-recomendado" type="checkbox" 
+                                               name="es_recomendado" id="checkRecomendar" 
+                                               style="transform: scale(1.8); cursor: pointer;">
+                                        <label class="form-check-label fw-bold text-warning ms-3" 
+                                               for="checkRecomendar" style="cursor: pointer; font-size: 1.1rem;">
+                                            <i class="bi bi-star-fill"></i> ¡Destacar como Recomendado VIP!
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-12">
+                                    <label class="form-label text-muted">
+                                        <i class="bi bi-chat-quote-fill"></i> Tu reseña personal (opcional)
+                                    </label>
+                                    <input type="text" name="comentario_biblio" class="form-control border-warning" 
+                                           placeholder='Ej: "Una historia increíble sobre la amistad y el valor"'
+                                           maxlength="255">
+                                    <small class="text-muted">
+                                        Aparecerá junto al recurso si lo marcas como recomendado
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TARJETA DE MINIATURA -->
+                    <div class="card shadow-sm mb-4" id="cardMiniatura">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0 text-info">
+                                <i class="bi bi-image"></i> Miniatura / Portada 
+                                <span id="miniaturaRequerido">(Opcional)</span>
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted small" id="textMiniatura">
+                                Sube una imagen cuadrada (JPG, PNG) para la portada. Si no subes, se usará una imagen por defecto.
+                            </p>
                             <div class="upload-zone border-info" id="uploadZoneMiniatura">
                                 <input type="file" name="miniatura" id="miniaturaInput" accept="image/*">
                                 <i class="bi bi-image fs-1 text-info"></i>
@@ -144,7 +213,9 @@
 
                 <div class="col-md-5">
                     <div class="card shadow border-0">
-                        <div class="card-header bg-primary text-white"><h5 class="mb-0" id="headerArchivo">Archivo Principal</h5></div>
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0" id="headerArchivo">Archivo Principal</h5>
+                        </div>
                         <div class="card-body">
                             <div class="upload-zone mb-3" id="uploadZone">
                                 <input type="file" name="archivo_digital" id="fileInput">
@@ -161,8 +232,11 @@
 
                             <!-- Campo para URL de YouTube (oculto por defecto) -->
                             <div class="mb-3 d-none" id="campoYoutube">
-                                <label class="form-label fw-bold text-danger"><i class="bi bi-youtube"></i> Link del Video (YouTube)</label>
-                                <input class="form-control" type="url" name="url_youtube" placeholder="https://www.youtube.com/watch?v=...">
+                                <label class="form-label fw-bold text-danger">
+                                    <i class="bi bi-youtube"></i> Link del Video (YouTube)
+                                </label>
+                                <input class="form-control" type="url" name="url_youtube" 
+                                       placeholder="https://www.youtube.com/watch?v=...">
                             </div>
                             
                             <button type="submit" class="btn btn-success w-100 fw-bold py-2">
@@ -196,21 +270,17 @@
             if(this.files && this.files.length > 0) fileNameDisplayMiniatura.textContent = this.files[0].name;
         });
 
-        // LÓGICA DINÁMICA CORREGIDA
         function actualizarFormulario() {
             const tipo = document.getElementById('tipoSelect').value;
             const labelDesc = document.getElementById('labelDesc');
 
-            // 1. Mostrar/Ocultar Stock
             if (tipo === 'fisico') {
                 campoStock.style.display = 'block';
             } else {
                 campoStock.style.display = 'none';
             }
 
-            // 2. Configurar campos según el tipo
             if (tipo === 'fisico') {
-                // Libro físico
                 uploadZone.style.display = 'none';
                 fileInput.removeAttribute('required');
                 campoAutor.style.display = 'block';
@@ -221,7 +291,6 @@
                 campoYoutube.classList.add('d-none');
                 
             } else if (tipo === 'video') {
-                // Video de YouTube
                 uploadZone.style.display = 'none';
                 fileInput.removeAttribute('required');
                 campoAutor.style.display = 'block';
@@ -232,7 +301,6 @@
                 campoYoutube.classList.remove('d-none');
                 
             } else if (tipo === 'bio') {
-                // Biografía
                 uploadZone.style.display = 'block';
                 fileInput.setAttribute('required', 'required');
                 fileInput.accept = "image/*, application/pdf";
@@ -245,7 +313,6 @@
                 campoYoutube.classList.add('d-none');
                 
             } else if (tipo === 'efemeride') {
-                // ✅ EFEMÉRIDE - AHORA PERMITE MINIATURA
                 uploadZone.style.display = 'block';
                 fileInput.setAttribute('required', 'required');
                 fileInput.accept = "image/*, application/pdf";
@@ -258,7 +325,6 @@
                 campoYoutube.classList.add('d-none');
                 
             } else {
-                // PDF o Audio
                 uploadZone.style.display = 'block';
                 fileInput.setAttribute('required', 'required');
                 campoAutor.style.display = 'block';
@@ -272,14 +338,11 @@
             }
         }
 
-        // Script para cambiar entre Archivo y YouTube
         const selectTipo = document.getElementById('tipoSelect');
-
         selectTipo.addEventListener('change', function() {
             actualizarFormulario();
         });
 
-        // Inicializar el formulario al cargar la página
         actualizarFormulario();
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
