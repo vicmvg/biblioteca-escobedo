@@ -16,7 +16,7 @@
         
         body { background-color: #f0f2f5; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
 
-        /* --- SIDEBAR PROFESIONAL --- */
+        /* --- SIDEBAR PROFESIONAL CON SCROLL --- */
         .sidebar {
             width: var(--sidebar-width);
             height: 100vh;
@@ -27,6 +27,25 @@
             padding-top: 20px;
             z-index: 1000;
             box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+            overflow-y: auto; /* ← LÍNEA AGREGADA PARA SCROLL */
+        }
+        
+        /* Personalizar scroll del sidebar */
+        .sidebar::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
         }
         
         .brand-section {
