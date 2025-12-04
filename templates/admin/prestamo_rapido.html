@@ -45,18 +45,45 @@
             <div class="card-header bg-primary text-white text-center py-4 position-relative">
                 <a href="{{ url_for('inventario') }}" class="btn btn-sm btn-light position-absolute top-0 start-0 m-3 rounded-circle"><i class="bi bi-arrow-left"></i></a>
                 
-                <h3 class="fw-bold mb-0">{{ recurso.titulo }}</h3>
-                <p class="mb-0 opacity-75">{{ recurso.autor }}</p>
-                
-                {% if recurso.ejemplares_disponibles > 0 %}
-                    <span class="badge bg-success status-badge mt-2 shadow-sm">
-                        <i class="bi bi-check-circle-fill"></i> Disponible ({{ recurso.ejemplares_disponibles }} / {{ recurso.ejemplares_total }})
-                    </span>
-                {% else %}
-                    <span class="badge bg-danger status-badge mt-2 shadow-sm">
-                        <i class="bi bi-x-circle-fill"></i> Agotado (0 / {{ recurso.ejemplares_total }})
-                    </span>
-                {% endif %}
+                <div class="card mb-4 shadow-sm border-0">
+                    <div class="row g-0">
+                        <div class="col-md-3 bg-light d-flex align-items-center justify-content-center p-2">
+                            {% if recurso.ruta_miniatura %}
+                                <img src="{{ url_for('ver_portada', recurso_id=recurso.id_recurso) }}" 
+                                     class="img-fluid rounded shadow-sm" 
+                                     alt="Portada" 
+                                     style="max-height: 150px; object-fit: cover;">
+                            {% else %}
+                                <div class="text-secondary text-center py-4">
+                                    <i class="bi bi-book display-4"></i>
+                                    <p class="small mb-0">Sin portada</p>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-9">
+                            <div class="card-body">
+                                <h4 class="card-title fw-bold text-primary">{{ recurso.titulo }}</h4>
+                                <p class="card-text text-muted mb-1">
+                                    <i class="bi bi-person-fill"></i> Autor: {{ recurso.autor }}
+                                </p>
+                                <p class="card-text mb-1">
+                                    <span class="badge bg-info text-dark">{{ recurso.categoria }}</span>
+                                    {% if recurso.grado and recurso.grado != 'General' %}
+                                        <span class="badge bg-warning text-dark">{{ recurso.grado }}</span>
+                                    {% endif %}
+                                </p>
+                                <p class="card-text mt-2">
+                                    {% if recurso.ejemplares_disponibles > 0 %}
+                                        <span class="text-success fw-bold"><i class="bi bi-check-circle-fill"></i> Disponible ({{ recurso.ejemplares_disponibles }})</span>
+                                    {% else %}
+                                        <span class="text-danger fw-bold"><i class="bi bi-x-circle-fill"></i> Agotado</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="card-body p-4">
