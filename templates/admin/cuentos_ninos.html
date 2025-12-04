@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuentos de Niños - BDMES</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+    
+    <style>
+        :root { --primary-color: #004d99; --sidebar-width: 280px; }
+        body { background-color: #f8f9fa; }
+        .sidebar { width: var(--sidebar-width); height: 100vh; position: fixed; top: 0; left: 0; background-color: var(--primary-color); color: white; padding-top: 20px; z-index: 1000; }
+        .sidebar .nav-link { color: rgba(255,255,255,0.8); margin-bottom: 5px; padding: 10px 20px; border-radius: 0 25px 25px 0; }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active { color: var(--primary-color); background-color: white; font-weight: bold; }
+        .main-content { margin-left: var(--sidebar-width); padding: 30px; }
+        .badge-destacado { background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%); color: #8b6914; }
+    </style>
+</head>
+<body>
+
+    <nav class="sidebar d-flex flex-column">
+        <div class="px-4 mb-4"><h4>Admin BDMES</h4></div>
+        <ul class="nav flex-column pe-3">
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('admin_dashboard') }}"><i class="bi bi-speedometer2 me-2"></i> Resumen</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('inventario') }}"><i class="bi bi-collection me-2"></i> Inventario</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('gestion_avances') }}"><i class="bi bi-folder-fill me-2"></i> Avances Docentes</a></li>
+            <li class="nav-item"><a class="nav-link active" href="{{ url_for('gestion_cuentos_ninos') }}"><i class="bi bi-pencil-fill me-2"></i> Cuentos de Niños</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('nuevo_recurso') }}"><i class="bi bi-cloud-arrow-up-fill me-2"></i> Subir Archivos</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{ url_for('gestion_prestamos') }}"><i class="bi bi-calendar-check-fill me-2"></i> Gestión de Préstamos</a></li>
+        </ul>
+        <div class="mt-auto p-3"><a href="{{ url_for('logout') }}" class="btn btn-outline-light w-100"><i class="bi bi-box-arrow-left"></i> Cerrar Sesión</a></div>
+    </nav>
+
+    <main class="main-content">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="bi bi-pencil-fill text-primary"></i> Cuentos de Nuestros Niños</h2>
+            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalNuevoCuento">
+                <i class="bi bi-plus-circle"></i> Publicar Nuevo Cuento
+            </button>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="row g-4">
+            {% for cuento in cuentos %}
+            <div class="col-md-4">
+                <div class="card h-100 shadow-sm">
+                    {% if cuento.ruta_portada %}
+                    <img src="{{ url_for('ver_portada_cuento', id_cuento=cuento.id_cuento) }}" 
+                         class="card-img-top" style="height: 200px; object-fit: cover;" alt="{{ cuento.titulo }}">
+                    {% else %}
+                    <div class="bg-primary text-white d-flex align-items-center justify-content-center" style="height: 200px;">
+                        <i class="bi bi-book-half" style="font-size: 4rem;"></i>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="card-body">
+                        {% if cuento.es_escritor_destacado %}
+                        <span class="badge badge-destacado mb-2">⭐ Escritor Destacado</span>
+                        {% endif %}
+                        
+                        <h5 class="card-title fw-bold">{{ cuento.titulo }}</h5>
+                        <p class="text-muted mb-1"><i class="bi bi-person-heart text-danger"></i> {{ cuento.autor_nino }}</p>
+                        <span class="badge bg-info">{{ cuento.grado }}</span>
+                        <p class="small text-secondary mt-2">{{ cuento.fecha_publicacion.strftime('%d/%m/%Y') }}</p>
+                    </div>
+                    
+                    <div class="card-footer bg-white border-0">
+                        <div class="d-flex gap-2">
+                            {% if cuento.ruta_archivo %}
+                            <a href="{{ url_for('ver_cuento_pdf', id_cuento=cuento.id_cuento) }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i> Ver
+                            </a>
+                            {% endif %}
+                            <form action="{{ url_for('eliminar_cuento', id_cuento=cuento.id_cuento) }}" method="POST" class="d-inline"
+                                  onsubmit="return confirm('¿Eliminar este cuento?')">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash"></i> Eliminar
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="col-12 text-center py-5">
+                <i class="bi bi-inbox display-1 text-muted"></i>
+                <p class="text-muted mt-3">Aún no hay cuentos publicados</p>
+            </div>
+            {% endfor %}
+        </div>
+    </main>
+
+    <!-- MODAL NUEVO CUENTO -->
+    <div class="modal fade" id="modalNuevoCuento" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <form action="{{ url_for('gestion_cuentos_ninos') }}" method="POST" enctype="multipart/form-data">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title"><i class="bi bi-pencil-fill"></i> Publicar Nuevo Cuento</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Título del Cuento *</label>
+                                <input type="text" class="form-control" name="titulo" required>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Nombre del Niño/a *</label>
+                                <input type="text" class="form-control" name="autor_nino" placeholder="Ej: María González" required>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Grado *</label>
+                                <select name="grado" class="form-select" required>
+                                    <option value="1°">1° Grado</option>
+                                    <option value="2°">2° Grado</option>
+                                    <option value="3°">3° Grado</option>
+                                    <option value="4°">4° Grado</option>
+                                    <option value="5°">5° Grado</option>
+                                    <option value="6°">6° Grado</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3 d-flex align-items-end">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="es_escritor_destacado" id="checkDestacado">
+                                    <label class="form-check-label fw-bold text-warning" for="checkDestacado">
+                                        ⭐ Marcar como Escritor Destacado
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="col-12 mb-3">
+                                <label class="form-label fw-bold">Descripción Breve (opcional)</label>
+                                <textarea class="form-control" name="descripcion" rows="2" placeholder="Una pequeña sinopsis del cuento..."></textarea>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Portada del Cuento</label>
+                                <input type="file" class="form-control" name="portada" accept="image/*">
+                                <small class="text-muted">Imagen de portada (JPG, PNG)</small>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Archivo PDF del Cuento</label>
+                                <input type="file" class="form-control" name="archivo_cuento" accept=".pdf">
+                                <small class="text-muted">PDF con el cuento completo</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-circle"></i> Publicar Cuento
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

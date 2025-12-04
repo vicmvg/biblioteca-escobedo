@@ -153,6 +153,7 @@
                     <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('admin_dashboard') }}">📊 Resumen</a></li>
                     <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('inventario') }}">📚 Inventario</a></li>
                     <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('gestion_avances') }}">📝 Avances Docentes</a></li>
+                    <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('gestion_cuentos_ninos') }}">📖 Cuentos de Niños</a></li>
                     {# DESACTIVADO TEMPORALMENTE - <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('registrar_alumno') }}">👥 Alumnos</a></li> #}
                     <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('nuevo_recurso') }}">☁️ Subir Archivos</a></li>
                     <li class="nav-item"><hr class="dropdown-divider bg-white"></li>
@@ -182,6 +183,11 @@
             <li class="nav-item">
                 <a class="nav-link" href="{{ url_for('gestion_avances') }}">
                     <i class="bi bi-folder-fill me-2"></i> Avances Docentes
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('gestion_cuentos_ninos') }}">
+                    <i class="bi bi-pencil-fill me-2"></i> Cuentos de Niños
                 </a>
             </li>
             {# DESACTIVADO TEMPORALMENTE

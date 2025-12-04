@@ -173,6 +173,60 @@
             object-fit: cover;
         }
 
+        /* Estilos para Cuentos de Niños */
+        .cuentos-section {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border-radius: 25px;
+            padding: 3rem 2rem;
+            margin-bottom: 4rem;
+            box-shadow: 0 10px 30px rgba(33, 150, 243, 0.15);
+        }
+
+        .badge-escritor-destacado {
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            color: #8b6914;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(255, 215, 0, 0.4);
+            animation: brillo 2s infinite;
+        }
+
+        @keyframes brillo {
+            0%, 100% { box-shadow: 0 4px 10px rgba(255, 215, 0, 0.4); }
+            50% { box-shadow: 0 4px 20px rgba(255, 215, 0, 0.8); }
+        }
+
+        .cuento-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+
+        .cuento-card:hover {
+            transform: translateY(-10px);
+            border-color: #2196f3;
+            box-shadow: 0 15px 35px rgba(33, 150, 243, 0.3);
+        }
+
+        .cuento-portada {
+            height: 250px;
+            overflow: hidden;
+            background: linear-gradient(135deg, #64b5f6 0%, #42a5f5 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .cuento-portada img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
     </style>
 </head>
 <body>
@@ -285,6 +339,73 @@
                                     </a>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- SECCIÓN: CUENTOS DE NUESTROS NIÑOS -->
+        {% if cuentos_ninos %}
+        <div class="cuentos-section">
+            <div class="text-center mb-5">
+                <h2 class="fw-bold text-primary mb-2">
+                    <i class="bi bi-pencil-fill me-3"></i>✨ Cuentos de Nuestros Niños ✨
+                </h2>
+                <p class="lead text-muted">
+                    Historias creadas con imaginación y corazón por nuestros pequeños escritores
+                </p>
+            </div>
+            
+            <div class="row g-4">
+                {% for cuento in cuentos_ninos %}
+                <div class="col-md-4">
+                    <div class="cuento-card">
+                        <div class="cuento-portada">
+                            {% if cuento.ruta_portada %}
+                                <img src="{{ url_for('ver_portada_cuento', id_cuento=cuento.id_cuento) }}" 
+                                     alt="Portada de {{ cuento.titulo }}">
+                            {% else %}
+                                <i class="bi bi-book-half text-white" style="font-size: 5rem;"></i>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="card-body p-4">
+                            {% if cuento.es_escritor_destacado %}
+                            <div class="text-center mb-3">
+                                <span class="badge-escritor-destacado">
+                                    ⭐ Escritor Destacado ⭐
+                                </span>
+                            </div>
+                            {% endif %}
+                            
+                            <h4 class="fw-bold text-center text-primary mb-3">{{ cuento.titulo }}</h4>
+                            
+                            <div class="text-center mb-3">
+                                <p class="mb-1 text-muted small">Escrito por:</p>
+                                <h5 class="text-dark fw-bold mb-1">
+                                    <i class="bi bi-person-heart text-danger"></i> {{ cuento.autor_nino }}
+                                </h5>
+                                <span class="badge bg-info text-white">{{ cuento.grado }}</span>
+                            </div>
+                            
+                            {% if cuento.descripcion %}
+                            <p class="small text-secondary text-center fst-italic mb-3">
+                                "{{ cuento.descripcion[:80] }}..."
+                            </p>
+                            {% endif %}
+                            
+                            {% if cuento.ruta_archivo %}
+                            <div class="d-grid">
+                                <a href="{{ url_for('ver_cuento_pdf', id_cuento=cuento.id_cuento) }}" 
+                                   target="_blank"
+                                   class="btn btn-primary btn-pill fw-bold">
+                                    <i class="bi bi-book-fill me-2"></i>Leer Cuento
+                                </a>
+                            </div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>

@@ -125,6 +125,18 @@ class Avance(db.Model):
     ruta_archivo = db.Column(db.String(255), nullable=True)
     ruta_imagen = db.Column(db.String(255), nullable=True)
 
+class CuentoNino(db.Model):
+    __tablename__ = 'cuentos_ninos'
+    id_cuento = db.Column(db.Integer, primary_key=True)
+    titulo = db.Column(db.String(255), nullable=False)
+    autor_nino = db.Column(db.String(100), nullable=False)
+    grado = db.Column(db.String(50), nullable=False)
+    es_escritor_destacado = db.Column(db.Boolean, default=False)
+    fecha_publicacion = db.Column(db.Date, default=date.today)
+    ruta_portada = db.Column(db.String(255), nullable=True)
+    ruta_archivo = db.Column(db.String(255), nullable=True)
+    descripcion = db.Column(db.Text, nullable=True)
+
 # --- INICIALIZACIÓN ---
 def inicializar_bd():
     with app.app_context():
@@ -182,11 +194,15 @@ def inicio():
     bios = [r for r in todos_recursos if r.tipo_recurso == 'bio'][:4]
     efemerides = [r for r in todos_recursos if r.tipo_recurso == 'efemeride'][:4]
     videos = [r for r in todos_recursos if r.tipo_recurso == 'video'][:4]
+    
+    # Agregar cuentos de niños
+    cuentos_ninos = CuentoNino.query.order_by(CuentoNino.fecha_publicacion.desc()).limit(6).all()
 
     return render_template('index.html', 
                            pdfs=pdfs, audios=audios, fisicos=fisicos, 
                            bios=bios, efemerides=efemerides, videos=videos,
                            recomendados=recomendados,
+                           cuentos_ninos=cuentos_ninos,
                            busqueda_activa=busqueda,
                            grado_actual=grado_filtro,
                            mensaje_personalizado=mensaje_personalizado)
@@ -640,6 +656,73 @@ def eliminar_avance(id_avance):
     
     return redirect(url_for('gestion_avances'))
 
+@app.route('/admin/cuentos-ninos', methods=['GET', 'POST'])
+def gestion_cuentos_ninos():
+    if 'loggedin' not in session: 
+        return redirect(url_for('admin_login'))
+
+    if request.method == 'POST':
+        try:
+            titulo = request.form.get('titulo')
+            autor_nino = request.form.get('autor_nino')
+            grado = request.form.get('grado')
+            descripcion = request.form.get('descripcion')
+            es_destacado = True if request.form.get('es_escritor_destacado') else False
+
+            # Subir portada
+            portada = request.files.get('portada')
+            ruta_portada_final = None
+            if portada and portada.filename != '':
+                nombre_seguro = secure_filename(portada.filename)
+                nombre_portada = f"cuento_{titulo[:10].replace(' ','_')}_{nombre_seguro}"
+                ruta_portada_final = upload_to_e2(portada, nombre_portada)
+
+            # Subir archivo PDF del cuento
+            archivo = request.files.get('archivo_cuento')
+            ruta_archivo_final = None
+            if archivo and archivo.filename != '':
+                nombre_seguro_archivo = secure_filename(archivo.filename)
+                nombre_archivo = f"cuento_pdf_{titulo[:10].replace(' ','_')}_{nombre_seguro_archivo}"
+                ruta_archivo_final = upload_to_e2(archivo, nombre_archivo)
+            
+            nuevo_cuento = CuentoNino(
+                titulo=titulo,
+                autor_nino=autor_nino,
+                grado=grado,
+                descripcion=descripcion,
+                es_escritor_destacado=es_destacado,
+                ruta_portada=ruta_portada_final,
+                ruta_archivo=ruta_archivo_final
+            )
+            db.session.add(nuevo_cuento)
+            db.session.commit()
+            flash('¡Cuento publicado exitosamente!', 'success')
+            return redirect(url_for('gestion_cuentos_ninos'))
+
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error subiendo cuento: {e}")
+            flash('Error al publicar el cuento.', 'danger')
+    
+    cuentos = CuentoNino.query.order_by(CuentoNino.fecha_publicacion.desc()).all()
+
+    return render_template('admin/cuentos_ninos.html', 
+                           cuentos=cuentos,
+                           user_name=session.get('user_name'))
+
+@app.route('/admin/eliminar-cuento/<int:id_cuento>', methods=['POST'])
+def eliminar_cuento(id_cuento):
+    if 'loggedin' not in session: 
+        return redirect(url_for('admin_login'))
+    
+    cuento = db.session.get(CuentoNino, id_cuento)
+    if cuento:
+        db.session.delete(cuento)
+        db.session.commit()
+        flash('Cuento eliminado correctamente.', 'success')
+    
+    return redirect(url_for('gestion_cuentos_ninos'))
+
 @app.route('/admin/descargar-respaldo')
 def descargar_respaldo():
     if 'loggedin' not in session: 
@@ -712,6 +795,60 @@ def ver_portada(recurso_id):
     except Exception as e:
         print(f"Error portada: {e}")
         return redirect("https://placehold.co/300x400/e0e0e0/666?text=Error")
+
+@app.route('/ver-portada-cuento/<int:id_cuento>')
+def ver_portada_cuento(id_cuento):
+    cuento = db.session.get(CuentoNino, id_cuento)
+    
+    if not cuento or not cuento.ruta_portada:
+        return redirect("https://placehold.co/300x400/e0e0e0/666?text=Sin+Portada")
+    
+    try:
+        s3 = boto3.client(
+            's3',
+            aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
+            aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'),
+            endpoint_url=os.environ.get('S3_ENDPOINT_URL')
+        )
+        bucket_name = os.environ.get('S3_BUCKET_NAME')
+        
+        url_firmada = s3.generate_presigned_url(
+            'get_object',
+            Params={'Bucket': bucket_name, 'Key': cuento.ruta_portada},
+            ExpiresIn=3600
+        )
+        return redirect(url_firmada)
+    except Exception as e:
+        print(f"Error portada cuento: {e}")
+        return redirect("https://placehold.co/300x400/e0e0e0/666?text=Error")
+
+@app.route('/ver-cuento-pdf/<int:id_cuento>')
+def ver_cuento_pdf(id_cuento):
+    cuento = db.session.get(CuentoNino, id_cuento)
+    
+    if not cuento or not cuento.ruta_archivo:
+        flash("Cuento no encontrado.", "danger")
+        return redirect(url_for('inicio'))
+    
+    try:
+        s3 = boto3.client(
+            's3',
+            aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
+            aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'),
+            endpoint_url=os.environ.get('S3_ENDPOINT_URL')
+        )
+        
+        bucket_name = os.environ.get('S3_BUCKET_NAME')
+        url_firmada = s3.generate_presigned_url(
+            'get_object',
+            Params={'Bucket': bucket_name, 'Key': cuento.ruta_archivo},
+            ExpiresIn=3600
+        )
+        return redirect(url_firmada)
+    except Exception as e:
+        print(f"Error accediendo al cuento: {e}")
+        flash("Error al acceder al cuento.", "danger")
+        return redirect(url_for('inicio'))
 
 @app.route('/ver-avance-privado/<int:id_avance>')
 def ver_avance_privado(id_avance):
