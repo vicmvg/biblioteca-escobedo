@@ -195,12 +195,17 @@ def inicio():
     efemerides = [r for r in todos_recursos if r.tipo_recurso == 'efemeride'][:4]
     videos = [r for r in todos_recursos if r.tipo_recurso == 'video'][:4]
     
+    # --- NUEVA SECCIÓN: RECURSOS PARA PADRES ---
+    padres = [r for r in todos_recursos if r.tipo_recurso == 'padres'][:4]
+    # ------------------------------------------
+    
     # Agregar cuentos de niños
     cuentos_ninos = CuentoNino.query.order_by(CuentoNino.fecha_publicacion.desc()).limit(6).all()
 
     return render_template('index.html', 
                            pdfs=pdfs, audios=audios, fisicos=fisicos, 
                            bios=bios, efemerides=efemerides, videos=videos,
+                           padres=padres,  # <--- ¡AGREGADO!
                            recomendados=recomendados,
                            cuentos_ninos=cuentos_ninos,
                            busqueda_activa=busqueda,
@@ -318,7 +323,8 @@ def inventario():
         ('audio', 'Audiocuento'), 
         ('bio', 'Biografía'),
         ('efemeride', 'Efeméride'),
-        ('video', 'Video (YouTube)')
+        ('video', 'Video (YouTube)'),
+        ('padres', 'Para Padres (Crianza y Guías)')  # <--- ¡AGREGADO!
     ]
     
     return render_template('admin/inventario.html', 
@@ -460,7 +466,15 @@ def imprimir_inventario():
     if categoria_filtro and categoria_filtro != 'Todas':
         titulo += f" (Cat: {categoria_filtro})"
     if tipo_filtro and tipo_filtro != 'Todos':
-        tipos_map = {'fisico': 'Físico', 'pdf': 'PDF', 'audio': 'Audio', 'bio': 'Biografía', 'efemeride': 'Efeméride', 'video': 'Video'}
+        tipos_map = {
+            'fisico': 'Físico', 
+            'pdf': 'PDF', 
+            'audio': 'Audio', 
+            'bio': 'Biografía', 
+            'efemeride': 'Efeméride', 
+            'video': 'Video',
+            'padres': 'Para Padres'  # <--- ¡AGREGADO!
+        }
         titulo += f" (Tipo: {tipos_map.get(tipo_filtro, tipo_filtro)})"
     
     return render_template('admin/imprimir_inventario.html', 

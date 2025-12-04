@@ -659,6 +659,54 @@
         </div>
         {% endif %}
 
+        <!-- SECCIÓN: RECURSOS PARA PADRES -->
+        {% if padres %}
+        <div class="container my-5 py-5 border-top">
+            <div class="row align-items-center mb-4">
+                <div class="col-md-8">
+                    <h3 class="fw-bold text-dark mb-1">
+                        <i class="bi bi-people-fill text-primary me-2"></i> Escuela para Padres
+                    </h3>
+                    <p class="text-muted mb-0">Recursos y guías para apoyar el crecimiento y aprendizaje de sus hijos.</p>
+                </div>
+                <div class="col-md-4 text-end d-none d-md-block">
+                     <a href="#" class="btn btn-outline-primary rounded-pill btn-sm">Ver todo</a>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                {% for guia in padres %}
+                <div class="col-md-3">
+                    <div class="card h-100 border-0 shadow-sm bg-light">
+                        <div class="row g-0 align-items-center h-100">
+                            <div class="col-4 p-2">
+                                {% if guia.ruta_miniatura %}
+                                    <img src="{{ url_for('ver_portada', recurso_id=guia.id_recurso) }}" class="img-fluid rounded shadow-sm" style="width: 100%; aspect-ratio: 1/1; object-fit: cover;">
+                                {% else %}
+                                    <div class="bg-secondary rounded d-flex align-items-center justify-content-center text-white" style="width: 100%; aspect-ratio: 1/1;">
+                                        <i class="bi bi-journal-text h4 mb-0"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-8">
+                                <div class="card-body p-2">
+                                    <h6 class="card-title fw-bold text-dark mb-1 small">{{ guia.titulo }}</h6>
+                                    <p class="card-text text-muted smaller mb-2" style="font-size: 0.8rem;">
+                                        {{ guia.autor if guia.autor else 'Recurso Educativo' }}
+                                    </p>
+                                    <a href="{{ url_for('ver_recurso', recurso_id=guia.id_recurso) }}" class="text-decoration-none text-primary fw-bold" style="font-size: 0.85rem;">
+                                        Leer Guía <i class="bi bi-arrow-right"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
     </main>
     
     <a href="{{ url_for('admin_login') }}" class="admin-float-btn" title="Acceso Administrativo">

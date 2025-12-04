@@ -101,6 +101,7 @@
                                     <option value="bio">👤 Biografía (Historia)</option>
                                     <option value="efemeride">📅 Efeméride (Evento)</option>
                                     <option value="video">🎬 Video (YouTube)</option>
+                                    <option value="padres">👨‍👩‍👧‍👦 Para Padres (Crianza y Guías)</option>
                                 </select>
                             </div>
 
@@ -321,6 +322,18 @@
                 document.getElementById('textoSubida').textContent = "Subir Imagen de la Efeméride";
                 miniaturaRequerido.textContent = "(Recomendado)";
                 textMiniatura.textContent = "Sube una miniatura que aparecerá en el inicio. Puede ser diferente a la imagen principal.";
+                campoArchivo.classList.remove('d-none');
+                campoYoutube.classList.add('d-none');
+                
+            } else if (tipo === 'padres') {
+                uploadZone.style.display = 'block';
+                fileInput.setAttribute('required', 'required');
+                fileInput.accept = ".pdf";
+                campoAutor.style.display = 'block';
+                document.getElementById('headerArchivo').textContent = "Archivo Principal (PDF)";
+                document.getElementById('textoSubida').textContent = "Subir PDF para Padres";
+                miniaturaRequerido.textContent = "(Recomendado)";
+                textMiniatura.textContent = "Sube una portada atractiva para este recurso de crianza y guías.";
                 campoArchivo.classList.remove('d-none');
                 campoYoutube.classList.add('d-none');
                 
