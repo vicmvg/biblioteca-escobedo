@@ -146,13 +146,30 @@ def inicio():
     grado_filtro = request.args.get('grado')
     
     query = Recurso.query
+    mensaje_personalizado = None  # Creamos la variable para el mensaje
 
     if busqueda:
         filtro = f"%{busqueda}%"
         query = query.filter((Recurso.titulo.like(filtro)) | (Recurso.autor.like(filtro)))
     
+    # --- NUEVA LÓGICA DE MENSAJES PERSONALIZADOS ---
     if grado_filtro:
         query = query.filter_by(grado=grado_filtro)
+        
+        if grado_filtro == '1°':
+            mensaje_personalizado = "¡Bienvenido a la aventura! Libros para los más pequeños."
+        elif grado_filtro == '2°':
+            mensaje_personalizado = "Empezando a leer solos. Historias fascinantes para nuevos lectores."
+        elif grado_filtro == '3°':
+            mensaje_personalizado = "¡Despegamos! Lecturas para imaginar y aprender."
+        elif grado_filtro == '4°':
+            mensaje_personalizado = "Grandes historias para grandes exploradores y curiosos."
+        elif grado_filtro == '5°':
+            mensaje_personalizado = "Listos para el reto. Lecturas que invitan a reflexionar."
+        elif grado_filtro == '6°':
+            mensaje_personalizado = "¡Rumbo a la Secundaria! Temas avanzados y lecturas de impacto."
+        elif grado_filtro == 'General':
+            mensaje_personalizado = "Explora todos nuestros recursos digitales y físicos."
     
     todos_recursos = query.all()
 
@@ -171,7 +188,8 @@ def inicio():
                            bios=bios, efemerides=efemerides, videos=videos,
                            recomendados=recomendados,
                            busqueda_activa=busqueda,
-                           grado_actual=grado_filtro)
+                           grado_actual=grado_filtro,
+                           mensaje_personalizado=mensaje_personalizado)
 
 @app.route('/ver-recurso/<int:recurso_id>')
 def ver_recurso(recurso_id):
