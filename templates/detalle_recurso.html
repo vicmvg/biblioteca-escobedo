@@ -84,12 +84,14 @@
 
                             <!-- BOTONES DE ACCIÓN SEGÚN TIPO -->
                             <div class="mt-4">
-                                {% if recurso.tipo_recurso == 'pdf' and recurso.ruta_archivo_e2 %}
-                                    <a href="{{ url_for('ver_archivo_privado', recurso_id=recurso.id_recurso) }}" target="_blank" class="btn btn-danger btn-lg rounded-pill">
-                                        <i class="bi bi-file-pdf-fill"></i> Leer PDF
+                                {% if recurso.tipo_recurso in ['pdf', 'cuento', 'padres'] and recurso.ruta_archivo_e2 %}
+                                    <a href="{{ url_for('ver_archivo_privado', recurso_id=recurso.id_recurso) }}" target="_blank" class="btn btn-danger btn-lg rounded-pill fw-bold w-100 mb-2">
+                                        <i class="bi bi-file-pdf-fill me-2"></i> Abrir Documento (PDF)
                                     </a>
+
                                 {% elif recurso.tipo_recurso == 'audio' and recurso.ruta_archivo_e2 %}
-                                    <div class="bg-light p-3 rounded-3">
+                                    <div class="bg-light p-3 rounded-3 border">
+                                        <label class="small text-muted mb-2"><i class="bi bi-headphones"></i> Reproductor de Audio</label>
                                         <audio controls class="w-100">
                                             <source src="{{ url_for('ver_archivo_privado', recurso_id=recurso.id_recurso) }}" type="audio/mpeg">
                                             Tu navegador no soporta audio.
