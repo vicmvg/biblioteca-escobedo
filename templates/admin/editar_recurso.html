@@ -15,7 +15,7 @@
     </nav>
     <main class="main-content">
         <h2>Editando: {{ recurso.titulo }}</h2>
-        <form action="{{ url_for('guardar_edicion_recurso', recurso_id=recurso.id_recurso) }}" method="POST">
+        <form action="{{ url_for('guardar_edicion_recurso', recurso_id=recurso.id_recurso) }}" method="POST" enctype="multipart/form-data">
             <div class="mb-3">
                 <label>Título</label>
                 <input type="text" class="form-control" name="titulo" value="{{ recurso.titulo }}" required>
@@ -36,7 +36,17 @@
                 <label>Descripción</label>
                 <textarea class="form-control" name="descripcion">{{ recurso.descripcion }}</textarea>
             </div>
-            <button type="submit" class="btn btn-warning w-100">Guardar Cambios</button>
+            
+            <!-- Campo para la miniatura -->
+            <div class="mb-3">
+                <label class="form-label">Portada/Miniatura (opcional)</label>
+                <input type="file" class="form-control" name="miniatura" accept="image/*">
+                {% if recurso.ruta_miniatura %}
+                    <small class="text-success">✓ Ya tiene portada cargada</small>
+                {% endif %}
+            </div>
+            
+            <button type="submit" class="btn btn-primary w-100">Guardar Cambios</button>
         </form>
     </main>
 </body>

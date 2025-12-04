@@ -437,10 +437,23 @@ def guardar_edicion_recurso(recurso_id):
         recurso.autor = request.form.get('autor')
         recurso.categoria = request.form.get('categoria')
         recurso.descripcion = request.form.get('descripcion')
+        
+        # ⭐ AGREGAR ESTA PARTE PARA MINIATURAS ⭐
+        miniatura = request.files.get('miniatura')
+        if miniatura and miniatura.filename != '':
+            nombre_seguro_min = secure_filename(miniatura.filename)
+            nombre_miniatura = f"min_{recurso.titulo[:10].replace(' ','_')}_{nombre_seguro_min}"
+            ruta_miniatura_final = upload_to_e2(miniatura, nombre_miniatura)
+            if ruta_miniatura_final:
+                recurso.ruta_miniatura = ruta_miniatura_final
+        # ⭐ FIN DE LA PARTE NUEVA ⭐
+        
         db.session.commit()
         flash("Recurso editado correctamente.", 'success')
         return redirect(url_for('inventario'))
-    except:
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error al editar: {e}")
         flash("Error al editar el recurso.", 'danger')
         return redirect(url_for('inventario'))
 
