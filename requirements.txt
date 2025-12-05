@@ -8,3 +8,4 @@ boto3  # <-- ¡NUEVA LÍNEA!
 
 psycopg2-binary
 
+pip install qrcode[pil]

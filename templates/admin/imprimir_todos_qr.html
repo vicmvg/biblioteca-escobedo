@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Imprimir Etiquetas QR</title>
+    <style>
+        /* ESTILOS PARA PANTALLA Y PAPEL */
+        body {
+            font-family: sans-serif;
+            background-color: #eee;
+            margin: 0;
+            padding: 20px;
+        }
+
+        /* La Hoja de Papel */
+        .hoja {
+            background: white;
+            width: 216mm; /* Ancho Carta */
+            height: 279mm; /* Alto Carta */
+            padding: 10mm;
+            margin: 0 auto 20px auto;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            
+            /* GRID: 3 Columnas x 5 Filas = 15 etiquetas por hoja */
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(5, 1fr); 
+            gap: 5mm; /* Espacio entre etiquetas para recortar */
+            box-sizing: border-box;
+            page-break-after: always; /* Salto de página al imprimir */
+        }
+
+        /* La Etiqueta Individual */
+        .etiqueta {
+            border: 1px dashed #ccc; /* Línea de recorte */
+            padding: 5px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .etiqueta img {
+            width: 80px; /* Tamaño del QR */
+            height: 80px;
+        }
+
+        .titulo {
+            font-size: 10px;
+            font-weight: bold;
+            margin-top: 5px;
+            max-height: 25px;
+            overflow: hidden;
+        }
+
+        .meta {
+            font-size: 9px;
+            color: #555;
+        }
+
+        /* BOTÓN FLOTANTE PARA IMPRIMIR (NO SALE EN EL PAPEL) */
+        .btn-print {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #0d6efd;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            cursor: pointer;
+        }
+        .btn-print:hover { background: #0b5ed7; }
+
+        /* REGLAS DE IMPRESIÓN */
+        @media print {
+            body { background: white; padding: 0; }
+            .hoja { box-shadow: none; margin: 0; width: 100%; height: 100vh; }
+            .btn-print { display: none; } /* Ocultar botón */
+            @page { margin: 0; size: letter; }
+        }
+    </style>
+</head>
+<body>
+
+    <a href="javascript:window.print()" class="btn-print">🖨️ IMPRIMIR AHORA</a>
+
+    {% for lote in libros | batch(15) %}
+    <div class="hoja">
+        {% for libro in lote %}
+        <div class="etiqueta">
+            <span class="meta">BIBLIOTECA M.E. | ID: {{ libro.id }}</span>
+            <img src="data:image/png;base64,{{ libro.qr_imagen }}">
+            <div class="titulo">{{ libro.titulo[:40] }}</div>
+            <span class="meta">Grado: {{ libro.grado }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endfor %}
+
+</body>
+</html>

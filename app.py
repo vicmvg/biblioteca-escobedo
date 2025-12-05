@@ -6,6 +6,9 @@ from datetime import date, timedelta
 import os
 import sys
 import boto3
+import qrcode
+from io import BytesIO
+import base64
 
 # --- CONFIGURACIÓN ---
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -910,6 +913,42 @@ def ver_avance_privado(id_avance):
 def logout():
     session.clear()
     return redirect(url_for('inicio'))
+
+# --- RUTA PARA IMPRIMIR TODOS LOS QRS EN PLANILLA ---
+@app.route('/admin/imprimir-todos-qr')
+def imprimir_todos_qr():
+    if 'loggedin' not in session: return redirect(url_for('admin_login'))
+    
+    # 1. Buscamos solo los libros físicos (que son los que llevan etiqueta)
+    libros = db.session.execute(db.select(Recurso).filter_by(tipo_recurso='fisico')).scalars().all()
+    
+    lista_qrs = []
+    
+    for libro in libros:
+        # 2. Creamos la data que tendrá el QR (La URL para ver el libro)
+        # Cuando escanees, te llevará directo a la ficha del libro
+        contenido_qr = url_for('ver_recurso', recurso_id=libro.id_recurso, _external=True)
+        
+        # 3. Generamos la imagen QR
+        qr = qrcode.QRCode(version=1, box_size=10, border=2)
+        qr.add_data(contenido_qr)
+        qr.make(fit=True)
+        img = qr.make_image(fill='black', back_color='white')
+        
+        # 4. Convertimos a base64 para que el HTML la entienda sin guardar archivo
+        buffered = BytesIO()
+        img.save(buffered)
+        img_str = base64.b64encode(buffered.getvalue()).decode()
+        
+        # 5. Guardamos en la lista
+        lista_qrs.append({
+            'titulo': libro.titulo,
+            'id': libro.id_recurso,
+            'grado': libro.grado,
+            'qr_imagen': img_str
+        })
+        
+    return render_template('admin/imprimir_todos_qr.html', libros=lista_qrs)
 
 # --- RUTA DE EMERGENCIA SIN AUTENTICACIÓN ---
 @app.route('/emergencia/reset-db-total')
