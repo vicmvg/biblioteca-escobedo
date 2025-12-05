@@ -171,7 +171,7 @@
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0 bg-primary p-2 rounded">
                     <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('admin_dashboard') }}">📊 Resumen</a></li>
                     <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('inventario') }}">📚 Inventario</a></li>
-                    <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('gestion_avances') }}">📝 Avances Docentes</a></li>
+                    <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('gestion_avances') }}">📁 Avances Docentes</a></li>
                     <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('gestion_cuentos_ninos') }}">📖 Cuentos de Niños</a></li>
                     {# DESACTIVADO TEMPORALMENTE - <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('registrar_alumno') }}">👥 Alumnos</a></li> #}
                     <li class="nav-item"><a class="nav-link text-white" href="{{ url_for('nuevo_recurso') }}">☁️ Subir Archivos</a></li>
@@ -386,7 +386,7 @@
                             </td>
                             <td>
                                 {% if prestamo.estado == 'Activo' %}
-                                    <form action="{{ url_for('devolver_prestamo', prestamo_id=prestamo.id_prestamo) }}" 
+                                    <form action="{{ url_for('devolver_libro', prestamo_id=prestamo.id_prestamo) }}" 
                                           method="POST" 
                                           style="display:inline;"
                                           onsubmit="return confirm('¿Confirmar la recepción y devolución de {{ prestamo.nombre_alumno }}?');">
