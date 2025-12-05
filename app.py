@@ -927,7 +927,9 @@ def imprimir_todos_qr():
     for libro in libros:
         # 2. Creamos la data que tendrá el QR (La URL para ver el libro)
         # Cuando escanees, te llevará directo a la ficha del libro
-        contenido_qr = url_for('ver_recurso', recurso_id=libro.id_recurso, _external=True)
+        
+        # AHORA APUNTA AL PRÉSTAMO RÁPIDO
+        contenido_qr = url_for('prestamo_rapido', recurso_id=libro.id_recurso, _external=True)
         
         # 3. Generamos la imagen QR
         qr = qrcode.QRCode(version=1, box_size=10, border=2)
