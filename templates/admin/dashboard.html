@@ -351,23 +351,6 @@
             #}
         </div>
 
-        <!-- NUEVA SECCIÓN DE RESPALDO -->
-        <div class="row mb-5">
-            <div class="col-md-12">
-                <div class="card shadow-lg border-0">
-                    <div class="card-body py-3">
-                        <h5 class="fw-bold text-danger mb-3"><i class="bi bi-shield-fill-exclamation me-2"></i> Mantenimiento y Respaldo</h5>
-                        <p class="text-muted small">Haz clic aquí para descargar una copia de seguridad de toda la información (inventario, préstamos y usuarios).</p>
-                        
-                        <a href="{{ url_for('descargar_respaldo') }}" class="btn btn-danger fw-bold py-2 px-4 shadow-sm" style="background: linear-gradient(90deg, #e74a3b, #be2617)!important;"
-                           onclick="return confirm('¿Confirmar la descarga del respaldo de la base de datos?');">
-                            <i class="bi bi-cloud-download-fill me-2"></i> Descargar Respaldo Ahora
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <!-- TABLA DE ÚLTIMOS MOVIMIENTOS CON DATOS DINÁMICOS -->
         <div class="card shadow border-0 overflow-hidden">
             <div class="card-header bg-white py-3 border-0">
