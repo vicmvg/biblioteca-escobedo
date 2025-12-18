@@ -10,3 +10,4 @@ psycopg2-binary
 
 qrcode
 pillow
+python-dotenv>=1.0.0

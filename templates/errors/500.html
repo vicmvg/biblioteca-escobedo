@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Error del servidor</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
+        h1 { color: #cc0000; }
+        a { color: #0066cc; text-decoration: none; }
+        .error-details { 
+            background: #f8f8f8; 
+            padding: 20px; 
+            margin: 20px auto; 
+            max-width: 600px; 
+            text-align: left;
+            font-family: monospace;
+            white-space: pre-wrap;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>500 - Error interno del servidor</h1>
+    <p>Lo sentimos, algo salió mal en el servidor.</p>
+    <p>El equipo técnico ha sido notificado del problema.</p>
+    <p><a href="/">Volver al inicio</a></p>
+    
+    {% if app.debug %}
+    <button onclick="document.getElementById('error-details').style.display='block'">
+        Mostrar detalles del error
+    </button>
+    <div id="error-details" class="error-details">
+        {{ error }}
+    </div>
+    {% endif %}
+</body>
+</html>

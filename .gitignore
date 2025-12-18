@@ -1,0 +1,3 @@
+# En tu archivo .gitignore
+.env
+*.env
