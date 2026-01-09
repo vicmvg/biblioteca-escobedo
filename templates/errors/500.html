@@ -24,7 +24,7 @@
     <p>El equipo técnico ha sido notificado del problema.</p>
     <p><a href="/">Volver al inicio</a></p>
     
-    {% if app.debug %}
+    {% if config.DEBUG %}
     <button onclick="document.getElementById('error-details').style.display='block'">
         Mostrar detalles del error
     </button>
