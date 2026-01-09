@@ -189,12 +189,12 @@
                                 <td class="text-end pe-3">
                                     
                                     {% if recurso.tipo_recurso == 'fisico' %}
-                                        <a href="{{ url_for('ver_qr', recurso_id=recurso.id_recurso) }}" class="btn btn-sm btn-info text-white me-1" title="Generar QR"><i class="bi bi-qr-code"></i></a>
+                                        <a href="{{ url_for('prestamo_rapido', recurso_id=recurso.id_recurso) }}" class="btn btn-sm btn-info text-white me-1" title="Préstamo Rápido"><i class="bi bi-qr-code"></i></a>
                                     {% else %}
                                         <span class="d-inline-block" style="width: 32px;"></span>
                                     {% endif %}
                                     
-                                    <a href="{{ url_for('editar_recurso_form', recurso_id=recurso.id_recurso) }}" class="btn btn-sm btn-outline-secondary me-1" title="Editar"><i class="bi bi-pencil"></i></a>
+                                    <a href="{{ url_for('editar_recurso', recurso_id=recurso.id_recurso) }}" class="btn btn-sm btn-outline-secondary me-1" title="Editar"><i class="bi bi-pencil"></i></a>
                                     
                                     <form action="{{ url_for('eliminar_recurso', recurso_id=recurso.id_recurso) }}" method="POST" style="display:inline;" onsubmit="return confirm('¿Seguro que deseas ELIMINAR este recurso?');">
                                         <button type="submit" class="btn btn-sm btn-danger" title="Eliminar"><i class="bi bi-trash"></i></button>

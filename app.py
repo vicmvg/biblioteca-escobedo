@@ -914,10 +914,10 @@ def devolver_libro(prestamo_id):
         if not prestamo or prestamo.estado != 'Activo':
             flash('Error: El préstamo no es válido o ya fue devuelto.', 'danger')
             return redirect(url_for('gestion_prestamos'))
-
+        
         prestamo.fecha_devolucion_real = date.today()
         prestamo.estado = 'Devuelto'
-
+        
         recurso = db.session.get(Recurso, prestamo.id_recurso)
         if recurso and recurso.ejemplares_total > 0:
             recurso.ejemplares_disponibles += 1
@@ -931,7 +931,7 @@ def devolver_libro(prestamo_id):
         db.session.rollback()
         logger.error(f"ERROR DE DEVOLUCIÓN {prestamo_id}: {str(e)}")
         flash('Error al procesar la devolución.', 'danger')
-
+    
     return redirect(url_for('gestion_prestamos'))
 
 # ============================================================================
@@ -1469,6 +1469,15 @@ def too_large_error(error):
     logger.warning(f"Archivo demasiado grande: {request.url}")
     flash('El archivo es demasiado grande (máximo 16MB)', 'danger')
     return redirect(request.referrer or url_for('inicio'))
+
+# ============================================================================
+# FAVICON ROUTE
+# ============================================================================
+
+@app.route('/favicon.ico')
+def favicon():
+    """Servir favicon para evitar errores 404."""
+    return '', 204
 
 # ============================================================================
 # EJECUCIÓN PRINCIPAL
